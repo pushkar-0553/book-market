@@ -174,7 +174,6 @@ export default function BookCard({ book, theme, viewMode }) {
         <div className="book-card-footer">
           <div className="book-card-price">
             <span className="book-card-price-main">  {`₹${book.Price}`}</span>
-            <span className="book-card-price-free">Campus delivery</span>
           </div>
 
           {inCart ? (
