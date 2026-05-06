@@ -164,8 +164,6 @@ export default function BookCard({ book, viewMode }) {
         {/* Price + CTA */}
         <div className="book-card-footer">
           <div className="book-card-price">
-
-            <span className="book-card-price-main">₹{book.Price}</span>
             <span className="book-card-price-main">  {`₹${book.Price}`}</span>
           </div>
 
