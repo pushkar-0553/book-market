@@ -78,7 +78,7 @@ export default function CartPage() {
   }
 
   return (
-    <div style={{ minHeight: 'calc(100vh - var(--navbar-h))', background: 'var(--bg-base)', padding: '2rem' }} className="animate-fade-in">
+    <div style={{ minHeight: 'calc(100vh - var(--navbar-h))', background: 'var(--bg-base)', padding: '2rem' }} className="animate-fade-in cart-page-wrap">
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Page header */}
@@ -291,10 +291,13 @@ export default function CartPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <dt style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Total</dt>
                   <dd style={{
-                    fontFamily: "'Playfair Display', serif",
-                    fontSize: '1.75rem',
+                    fontFamily: "'DM Mono', monospace",
+                    fontVariantNumeric: 'tabular-nums lining-nums',
+                    fontFeatureSettings: '"tnum" 1, "lnum" 1',
+                    fontSize: '1.625rem',
                     fontWeight: 700,
                     color: 'var(--text-primary)',
+                    letterSpacing: '-0.02em',
                   }}>
                     ₹{total.toLocaleString()}
                   </dd>
@@ -504,10 +507,13 @@ function CartItem({ item, dispatch }) {
           {/* Price + delete */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
             <span style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: '1.25rem',
+              fontFamily: "'DM Mono', monospace",
+              fontVariantNumeric: 'tabular-nums lining-nums',
+              fontFeatureSettings: '"tnum" 1, "lnum" 1',
+              fontSize: '1.125rem',
               fontWeight: 700,
               color: 'var(--text-primary)',
+              letterSpacing: '-0.02em',
             }}>
               ₹{(Number(item.Price) * item.quantity).toLocaleString()}
             </span>

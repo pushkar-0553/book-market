@@ -3,12 +3,12 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   FiShoppingCart, FiSearch, FiLogOut,
-  FiHeart, FiMenu, FiX, FiPackage, FiSun, FiMoon,
+  FiHeart, FiMenu, FiX, FiPackage,
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
-export default function Navbar({ theme, onThemeToggle, onSearch, onMenuToggle, menuOpen, searchValue }) {
+export default function Navbar({ onSearch, onMenuToggle, menuOpen, searchValue }) {
   const { user, logout } = useAuth();
   const { cartCount, wishlist } = useCart();
   const navigate = useNavigate();
@@ -25,7 +25,6 @@ export default function Navbar({ theme, onThemeToggle, onSearch, onMenuToggle, m
 
   const wishCount = wishlist?.length || 0;
   const isDashboard = location.pathname === '/dashboard';
-  const isDark = theme === 'dark';
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -70,7 +69,7 @@ export default function Navbar({ theme, onThemeToggle, onSearch, onMenuToggle, m
         <div className="navbar-logo-icon">
           <span style={{ fontSize: '1.125rem', position: 'relative', zIndex: 1 }}>📖</span>
         </div>
-        <div className="hidden sm:block">
+        <div className="navbar-logo-textgroup">
           <div className="navbar-logo-text">BookMarket</div>
           <div className="navbar-logo-sub">Engineering Books</div>
         </div>
@@ -83,7 +82,7 @@ export default function Navbar({ theme, onThemeToggle, onSearch, onMenuToggle, m
         borderRadius: 4,
         opacity: 0.4,
         flexShrink: 0,
-      }} className="hidden sm:block" />
+      }} className="navbar-accent-line" />
 
       {/* Search — only visible on Dashboard */}
       {isDashboard && (
@@ -128,34 +127,20 @@ export default function Navbar({ theme, onThemeToggle, onSearch, onMenuToggle, m
       {/* Right side actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginLeft: isDashboard ? 'auto' : '0', flexShrink: 0 }}>
 
-        {/* Orders link — desktop */}
+        {/* Orders link — desktop only */}
         <Link
           to="/orders"
           id="nav-orders"
-          className={`nav-icon-btn hidden md:flex ${location.pathname === '/orders' ? 'active' : ''}`}
+          className={`nav-icon-btn nav-orders-btn ${location.pathname === '/orders' ? 'active' : ''}`}
           aria-label="My Orders"
           title="My Orders"
           style={{ width: 'auto', padding: '0 0.75rem', gap: '0.375rem', fontSize: '0.8125rem', fontWeight: 600 }}
         >
           <FiPackage size={16} />
-          <span className="hidden lg:inline">Orders</span>
+          <span className="nav-orders-label">Orders</span>
         </Link>
 
-        {/* Dark mode toggle */}
-        <button
-          id="theme-toggle"
-          onClick={onThemeToggle}
-          className="nav-icon-btn"
-          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={isDark ? 'Light mode' : 'Dark mode'}
-        >
-          {isDark
-            ? <FiSun size={18} style={{ color: 'var(--accent-primary)' }} />
-            : <FiMoon size={17} />
-          }
-        </button>
 
-        {/* Wishlist */}
         <Link
           to="/wishlist"
           id="nav-wishlist"
@@ -199,7 +184,7 @@ export default function Navbar({ theme, onThemeToggle, onSearch, onMenuToggle, m
             <div className="nav-avatar">
               {user?.name?.[0] || 'S'}
             </div>
-            <span className="nav-avatar-name hidden sm:block">
+            <span className="nav-avatar-name">
               {user?.name?.split(' ')[0] || 'Student'}
             </span>
           </button>

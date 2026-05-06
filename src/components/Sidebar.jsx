@@ -32,9 +32,9 @@ function SidebarContent({ selectedBranch, onSelectBranch, onClose }) {
   return (
     <div className="sidebar-inner">
 
-      {/* Close btn on mobile */}
+      {/* Close btn on mobile — shows only when sidebar is a drawer */}
       {onClose && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }} className="lg:hidden">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }} className="sidebar-close-row">
           <button onClick={onClose} className="btn btn-ghost btn-icon-sm" aria-label="Close sidebar">
             <FiX size={18} />
           </button>
@@ -125,16 +125,16 @@ function SidebarContent({ selectedBranch, onSelectBranch, onClose }) {
 export default function Sidebar({ selectedBranch, onSelectBranch, isOpen, onClose }) {
   return (
     <>
-      {/* Desktop */}
+      {/* Desktop sidebar — hidden on mobile via CSS */}
       <aside
         id="sidebar-desktop"
-        className="sidebar hidden lg:block"
+        className="sidebar"
         aria-label="Course navigation"
       >
         <SidebarContent selectedBranch={selectedBranch} onSelectBranch={onSelectBranch} />
       </aside>
 
-      {/* Mobile overlay */}
+      {/* Mobile overlay backdrop */}
       {isOpen && (
         <div
           style={{
@@ -143,15 +143,13 @@ export default function Sidebar({ selectedBranch, onSelectBranch, isOpen, onClos
             backdropFilter: 'blur(4px)',
             zIndex: 30,
           }}
-          className="lg:hidden"
           onClick={onClose}
         />
       )}
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — slides in from left */}
       <aside
         id="sidebar-mobile"
-        className="lg:hidden"
         aria-hidden={!isOpen}
         style={{
           position: 'fixed',

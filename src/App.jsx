@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
@@ -16,13 +16,13 @@ import BookDetailsPage from './pages/BookDetailsPage';
 
 // Layout for secondary protected pages (Cart, Checkout, Orders, Wishlist)
 // Dashboard has its own Navbar instance with search + menu controls
-function SecondaryLayout({ theme, onThemeToggle }) {
+function SecondaryLayout() {
   return (
     <ProtectedRoute>
       <a href="#main-content" className="skip-nav">Skip to content</a>
-      <Navbar theme={theme} onThemeToggle={onThemeToggle} />
+      <Navbar />
       <div style={{ paddingTop: 'var(--navbar-h)' }}>
-        <Outlet context={{ theme, onThemeToggle }} />
+        <Outlet />
       </div>
     </ProtectedRoute>
   );
@@ -38,18 +38,10 @@ function DashboardLayout() {
 }
 
 export default function App() {
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('bm_theme') || 'dark';
-  });
-
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('bm_theme', theme);
-  }, [theme]);
-
-  const handleThemeToggle = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
+    document.documentElement.setAttribute('data-theme', 'light');
+    localStorage.removeItem('bm_theme');
+  }, []);
 
   return (
     <AuthProvider>
@@ -62,11 +54,11 @@ export default function App() {
 
               {/* Dashboard — has its own internal Navbar with search */}
               <Route element={<DashboardLayout />}>
-                <Route path="/dashboard" element={<DashboardPage theme={theme} onThemeToggle={handleThemeToggle} />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
               </Route>
 
               {/* Secondary protected pages — shared Navbar from SecondaryLayout */}
-              <Route element={<SecondaryLayout theme={theme} onThemeToggle={handleThemeToggle} />}>
+              <Route element={<SecondaryLayout />}>
                 <Route path="/cart"     element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/wishlist" element={<WishlistPage />} />

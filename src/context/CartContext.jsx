@@ -21,10 +21,14 @@ function cartReducer(state, action) {
       }
       return { ...state, items: [...state.items, { ...action.payload, quantity: 1, selected: true }] };
     }
-    case 'REMOVE_FROM_CART':
-      return { ...state, items: state.items.filter(i => i.BookID !== action.payload) };
-    case 'REMOVE_SELECTED':
-      return { ...state, items: state.items.filter(i => !i.selected) };
+    case 'REMOVE_FROM_CART': {
+      const remaining = state.items.filter(i => i.BookID !== action.payload);
+      return { ...state, items: remaining, promo: remaining.length === 0 ? null : state.promo };
+    }
+    case 'REMOVE_SELECTED': {
+      const afterRemove = state.items.filter(i => !i.selected);
+      return { ...state, items: afterRemove, promo: afterRemove.length === 0 ? null : state.promo };
+    }
     case 'UPDATE_QUANTITY':
       return {
         ...state,

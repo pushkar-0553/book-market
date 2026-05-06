@@ -69,6 +69,8 @@ export function AuthProvider({ children }) {
 
   function logout() {
     dispatch({ type: 'LOGOUT' });
+    // Clear any stored location so next login goes to dashboard, not a previous protected page
+    try { sessionStorage.removeItem('bm_from_path'); } catch {}
   }
 
   function clearError() {

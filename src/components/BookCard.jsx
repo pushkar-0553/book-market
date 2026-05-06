@@ -16,14 +16,6 @@ const CARD_BG_LIGHT = [
   'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
 ];
 
-const CARD_BG_DARK = [
-  'linear-gradient(135deg, #0c2040 0%, #0f2a52 100%)',
-  'linear-gradient(135deg, #052e16 0%, #064e20 100%)',
-  'linear-gradient(135deg, #431407 0%, #6b2106 100%)',
-  'linear-gradient(135deg, #2e1065 0%, #4c1d95 100%)',
-  'linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%)',
-  'linear-gradient(135deg, #082f49 0%, #0c4a6e 100%)',
-];
 
 const TOAST_STYLE = {
   background: 'var(--bg-elevated)',
@@ -35,7 +27,7 @@ const TOAST_STYLE = {
   fontSize: '0.875rem',
 };
 
-export default function BookCard({ book, theme, viewMode }) {
+export default function BookCard({ book, viewMode }) {
   const navigate = useNavigate();
   const { dispatch, isInCart, isInWishlist, addToCart, items } = useCart();
   const [imgError, setImgError] = useState(false);
@@ -43,13 +35,12 @@ export default function BookCard({ book, theme, viewMode }) {
   const cartItem = items.find(i => i.BookID === book.BookID);
   const cartQty = cartItem ? cartItem.quantity : 0;
   const inWish = isInWishlist(book.BookID);
-  const isDark = theme === 'dark';
 
   const gradIdx = book.BookID
     ? book.BookID.charCodeAt(book.BookID.length - 1) % CARD_BG_LIGHT.length
     : 0;
 
-  const cardBg = isDark ? CARD_BG_DARK[gradIdx] : CARD_BG_LIGHT[gradIdx];
+  const cardBg = CARD_BG_LIGHT[gradIdx];
 
   const rating = 3.5 + ((book.BookID?.charCodeAt(0) || 65) % 15) / 10;
 
@@ -174,7 +165,6 @@ export default function BookCard({ book, theme, viewMode }) {
         <div className="book-card-footer">
           <div className="book-card-price">
             <span className="book-card-price-main">₹{book.Price}</span>
-            <span className="book-card-price-free">Campus delivery</span>
           </div>
 
           {inCart ? (

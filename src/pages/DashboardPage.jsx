@@ -20,10 +20,10 @@ const HERO_BANNERS = {
   Aeronautical: { color: 'linear-gradient(135deg, #082f49 0%, #0c4a6e 60%, #0ea5e9 100%)', icon: '✈️', label: 'Aeronautical' },
 };
 
-export default function DashboardPage({ theme, onThemeToggle }) {
+export default function DashboardPage() {
   const { allBooks: books, loading } = useBooks();
 
-  const [selectedBranch, setSelectedBranch] = useState('CSE');
+  const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedYear, setSelectedYear]     = useState('All');
   const [searchQuery, setSearchQuery]       = useState('');
   const [viewMode, setViewMode]             = useState('grid');
@@ -51,7 +51,7 @@ export default function DashboardPage({ theme, onThemeToggle }) {
   }, [books, selectedBranch, selectedYear, searchQuery]);
 
   const heroBanner = HERO_BANNERS[selectedBranch] || HERO_BANNERS.Common;
-  const totalBooks = books.filter(b => b.Branch === selectedBranch).length;
+  const totalBooks = filtered.length;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-base)' }}>
@@ -61,8 +61,6 @@ export default function DashboardPage({ theme, onThemeToggle }) {
         searchValue={searchQuery}
         onMenuToggle={() => setMenuOpen(p => !p)}
         menuOpen={menuOpen}
-        theme={theme}
-        onThemeToggle={onThemeToggle}
       />
 
       <div style={{ display: 'flex', paddingTop: 'var(--navbar-h)' }}>
@@ -78,8 +76,27 @@ export default function DashboardPage({ theme, onThemeToggle }) {
           className="main-content"
           style={{ padding: '0', display: 'flex', flexDirection: 'column' }}
         >
+          {/* ── No branch selected landing state ────── */}
+          {!selectedBranch ? (
+            <div className="empty-state animate-fade-in" style={{ minHeight: 'calc(100vh - var(--navbar-h))', justifyContent: 'center' }}>
+              <div className="empty-state-icon" style={{ fontSize: '3rem' }}>📚</div>
+              <h2 className="empty-state-title">Welcome to BookMarket</h2>
+              <p className="empty-state-body" style={{ maxWidth: 380 }}>
+                Select your branch from the left panel to browse semester-wise books curated for your course.
+              </p>
+              <button
+                className="btn btn-primary btn-lg"
+                onClick={() => handleBranchSelect('CSE')}
+                style={{ marginTop: '0.5rem' }}
+              >
+                Start with CSE
+              </button>
+            </div>
+          ) : (
+            <>
           {/* ── Hero Banner ───────────────────────────── */}
           <div
+            className="dashboard-hero"
             style={{
               background: heroBanner.color,
               padding: '2rem 2rem 1.75rem',
@@ -124,9 +141,9 @@ export default function DashboardPage({ theme, onThemeToggle }) {
               </div>
 
               {/* Stats row */}
-              <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+              <div className="dashboard-hero-stats" style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                 {[
-                  { icon: <FiBookOpen size={14} />, value: `${totalBooks} books`, label: 'available' },
+                  { icon: <FiBookOpen size={14} />, value: `${totalBooks} book${totalBooks !== 1 ? 's' : ''}`, label: 'available' },
                   { icon: <FiTrendingUp size={14} />, value: 'B.Tech', label: 'curriculum' },
                   { icon: <FiPackage size={14} />, value: 'Campus', label: 'delivery' },
                 ].map(s => (
@@ -141,7 +158,7 @@ export default function DashboardPage({ theme, onThemeToggle }) {
           </div>
 
           {/* ── Filter Bar ────────────────────────────── */}
-          <div style={{
+          <div className="dashboard-filter-bar" style={{
             padding: '1.25rem 2rem',
             background: 'var(--bg-surface)',
             backdropFilter: 'blur(12px)',
@@ -236,13 +253,13 @@ export default function DashboardPage({ theme, onThemeToggle }) {
           </div>
 
           {/* ── Books Grid ────────────────────────────── */}
-          <div style={{ padding: '1.75rem 2rem 3rem', flex: 1 }}>
+          <div className="dashboard-content" style={{ padding: '1.75rem 2rem 3rem', flex: 1 }}>
             {loading ? (
-              <div style={{
+              <div className="books-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: viewMode === 'list'
                   ? '1fr'
-                  : 'repeat(auto-fill, minmax(220px, 1fr))',
+                  : 'repeat(auto-fill, minmax(200px, 1fr))',
                 gap: '1.25rem',
               }}>
                 {Array.from({ length: 8 }).map((_, i) => (
@@ -267,11 +284,12 @@ export default function DashboardPage({ theme, onThemeToggle }) {
               </div>
             ) : (
               <div
+                className="books-grid"
                 style={{
                   display: 'grid',
                   gridTemplateColumns: viewMode === 'list'
                     ? '1fr'
-                    : 'repeat(auto-fill, minmax(220px, 1fr))',
+                    : 'repeat(auto-fill, minmax(200px, 1fr))',
                   gap: viewMode === 'list' ? '0.75rem' : '1.25rem',
                 }}
                 role="list"
@@ -288,7 +306,6 @@ export default function DashboardPage({ theme, onThemeToggle }) {
                   >
                     <BookCard
                       book={book}
-                      theme={theme}
                       viewMode={viewMode}
                     />
                   </div>
@@ -296,6 +313,8 @@ export default function DashboardPage({ theme, onThemeToggle }) {
               </div>
             )}
           </div>
+            </>
+          )}
         </main>
       </div>
 

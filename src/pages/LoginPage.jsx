@@ -30,12 +30,10 @@ export default function LoginPage() {
   const [localError, setLocalError] = useState('');
   const [mounted, setMounted]   = useState(false);
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  // Always redirect to /dashboard after login — never restore previous protected pages like /cart
+  const from = '/dashboard';
 
-  useEffect(() => {
-    setMounted(true);
-    if (isAuthenticated) navigate(from, { replace: true });
-  }, [isAuthenticated]);
+  useEffect(() => { setMounted(true); if (isAuthenticated) navigate(from, { replace: true }); }, [isAuthenticated]);
 
   useEffect(() => { if (error) setLocalError(error); }, [error]);
 
@@ -247,9 +245,8 @@ export default function LoginPage() {
                   value={email}
                   onChange={e => { setEmail(e.target.value); if (localError) setLocalError(''); }}
                   className="input-field has-icon-left"
-                  placeholder="student@bookmarket.com"
-                  autoComplete="email"
-                  autoFocus
+                  placeholder="Enter your email address"
+                  autoComplete="off"
                 />
               </div>
             </div>

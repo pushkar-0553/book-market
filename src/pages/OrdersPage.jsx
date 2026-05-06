@@ -420,7 +420,7 @@ function OrderCard({
              <div className="status-strip strip-done" style={{marginBottom: '10px'}}>
               <div>
                 <p className="strip-text">Delivered on {formatDate(order.orderTime)}, {formatTime(order.orderTime)}</p>
-                <p style={{fontSize: '12px', color: '#3B6D11', marginTop: '2px'}}>All {order.items.length} items delivered to your hostel</p>
+                <p style={{fontSize: '12px', color: '#3B6D11', marginTop: '2px'}}>All {order.items.length} item{order.items.length !== 1 ? 's' : ''} delivered to your location</p>
               </div>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B6D11" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             </div>
@@ -681,7 +681,8 @@ export default function OrdersPage() {
     <div className="page animate-fade-in">
       <div className="page-hdr">
         <button className="back-btn" onClick={() => navigate('/dashboard')} aria-label="Back to dashboard">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
         </button>
         <div>
           <p className="pg-title">My Orders</p>
@@ -691,6 +692,13 @@ export default function OrdersPage() {
           <button className="filter-pill active">All Orders</button>
           <button className="filter-pill">Delivered</button>
           <button className="filter-pill">Active</button>
+          <button
+            className="filter-pill"
+            onClick={() => navigate('/dashboard')}
+            style={{ background: 'var(--navy-100)', color: 'var(--navy-700)', borderColor: 'var(--navy-300)' }}
+          >
+            🛒 Continue Shopping
+          </button>
         </div>
       </div>
 
@@ -915,11 +923,13 @@ export default function OrdersPage() {
         .cdlg-btn-cancel:active{transform:scale(0.97);}
 
         .page-hdr{background:var(--bg-surface);border-bottom:0.5px solid var(--border-subtle);padding:14px 28px;display:flex;align-items:center;gap:10px;}
-        .back-btn{width:30px;height:30px;border-radius:50%;border:0.5px solid var(--border-default);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
-        .pg-title{font-size:18px;font-weight:500;color:var(--text-primary);}
+        .back-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:0.5px solid var(--border-default);background:transparent;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:background 150ms,color 150ms;}
+        .back-btn:hover{background:var(--bg-base);color:var(--text-primary);}
+        .pg-title{font-size:20px;font-weight:700;color:var(--text-primary);}
         .pg-sub{font-size:13px;color:var(--text-muted);margin-top:1px;}
         .hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
-        .filter-pill{font-size:13px;padding:5px 12px;border-radius:20px;border:0.5px solid var(--border-default);background:var(--bg-surface);color:var(--text-muted);cursor:pointer;}
+        .filter-pill{font-size:13px;padding:5px 12px;border-radius:20px;border:0.5px solid var(--border-default);background:var(--bg-surface);color:var(--text-muted);cursor:pointer;transition:background 150ms,color 150ms;}
+        .filter-pill:hover{background:var(--bg-elevated);}
         .filter-pill.active{background:#0a1628;color:white;border-color:#0a1628;}
 
         .layout{display:grid;grid-template-columns:1fr 300px;gap:24px;padding:24px 32px;align-items:start;}
@@ -1031,10 +1041,10 @@ export default function OrdersPage() {
 
         .right{display:flex;flex-direction:column;gap:14px;position:sticky;top:84px;}
 
-        .sidebar-card{background:var(--bg-surface);border:0.5px solid var(--border-subtle);border-radius:var(--r-lg);overflow:hidden;}
-        .sc-hdr{padding:12px 14px;border-bottom:0.5px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between;}
-        .sc-title{font-size:14px;font-weight:500;color:var(--text-primary);}
-        .sc-link{font-size:12px;color:#185FA5;cursor:pointer;}
+        .sidebar-card{background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm);}
+        .sc-hdr{padding:12px 14px;border-bottom:1px solid var(--border-default);display:flex;align-items:center;justify-content:space-between;background:var(--bg-elevated);}
+        .sc-title{font-size:14px;font-weight:700;color:var(--text-primary);}
+        .sc-link{font-size:12px;color:#185FA5;cursor:pointer;font-weight:600;}
         .sc-body{padding:12px 14px;}
 
         .account-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}

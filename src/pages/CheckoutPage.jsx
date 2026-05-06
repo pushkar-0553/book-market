@@ -46,13 +46,7 @@ export default function CheckoutPage() {
   const total     = subtotal + (selectedItems.length > 0 ? DELIVERY_FEE : 0) - discount;
 
   const [step, setStep]         = useState(0); // 0=address, 1=payment
-  const [form, setForm]         = useState(() => {
-    try {
-      const saved = localStorage.getItem('bm_address');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return { name: user?.name || '', address: '', city: '', state: '', pincode: '', phone: '' };
-  });
+  const [form, setForm]         = useState({ name: '', address: '', city: '', state: '', pincode: '', phone: '' });
   const [payment, setPayment]   = useState('cod');
   const [card, setCard]         = useState({ number: '', name: '', expiry: '', cvv: '' });
   const [upiId, setUpiId]       = useState('');
@@ -105,7 +99,8 @@ export default function CheckoutPage() {
     localStorage.setItem('bm_orders', JSON.stringify([...prev, order]));
 
     setPlacedOrder(order);
-    localStorage.setItem('bm_address', JSON.stringify(form));
+    // Don't persist address — clear it so next order starts fresh (TC11)
+    localStorage.removeItem('bm_address');
 
     dispatch({ type: 'CLEAR_CART' });
     setSubmitting(false);
@@ -149,7 +144,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div style={{ minHeight: 'calc(100vh - var(--navbar-h))', background: 'var(--bg-base)', padding: '2rem' }} className="animate-fade-in">
+    <div style={{ minHeight: 'calc(100vh - var(--navbar-h))', background: 'var(--bg-base)', padding: '2rem' }} className="animate-fade-in checkout-page-wrap">
       <div style={{ maxWidth: 1000, margin: '0 auto' }}>
 
         {/* Back button + title */}
@@ -203,9 +198,10 @@ export default function CheckoutPage() {
                         <input id="city" type="text" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} className={`input-field ${errors.city ? 'error' : ''}`} placeholder="City" />
                       </Field>
                       <Field id="state" label="State" error={errors.state} required>
-                        <select id="state" value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} className={`input-field ${errors.state ? 'error' : ''}`}>
-                          <option value="">Select State</option>
-                          {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                        <select id="state" value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} className={`input-field ${errors.state ? 'error' : ''}`}
+                          style={{ color: 'var(--text-primary)', background: 'var(--bg-surface)' }}>
+                          <option value="" style={{ color: 'var(--text-muted)', background: 'var(--bg-surface)' }}>Select State</option>
+                          {INDIAN_STATES.map(s => <option key={s} value={s} style={{ color: 'var(--text-primary)', background: 'var(--bg-surface)' }}>{s}</option>)}
                         </select>
                       </Field>
                     </div>
@@ -342,7 +338,7 @@ export default function CheckoutPage() {
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-default)', paddingTop: '1rem' }}>
                   <dt style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Total</dt>
-                  <dd style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.5rem', fontWeight: 900, color: 'var(--accent-primary)' }}>₹{total.toLocaleString()}</dd>
+                  <dd style={{ fontFamily: "'DM Mono', monospace", fontVariantNumeric: 'tabular-nums lining-nums', fontFeatureSettings: '"tnum" 1, "lnum" 1', fontSize: '1.375rem', fontWeight: 700, color: 'var(--accent-primary)', letterSpacing: '-0.02em' }}>₹{total.toLocaleString()}</dd>
                 </div>
               </dl>
             </div>
