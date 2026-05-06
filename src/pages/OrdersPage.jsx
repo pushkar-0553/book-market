@@ -811,41 +811,7 @@ export default function OrdersPage() {
             </div>
           )}
 
-          <div className="sidebar-card">
-            <div className="sc-hdr"><p className="sc-title">Need help?</p></div>
-            <div className="sc-body" style={{padding: '6px 14px'}}>
-              <div className="support-row">
-                <div className="support-icon" style={{background: '#E6F1FB'}}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                </div>
-                <div>
-                  <p className="support-label">Contact support</p>
-                  <p className="support-sub">Chat with our team</p>
-                </div>
-                <svg className="chev-right" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-              </div>
-              <div className="support-row">
-                <div className="support-icon" style={{background: '#FAEEDA'}}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#854F0B" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                </div>
-                <div>
-                  <p className="support-label">Return policy</p>
-                  <p className="support-sub">7-day return window</p>
-                </div>
-                <svg className="chev-right" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-              </div>
-              <div className="support-row">
-                <div className="support-icon" style={{background: '#EAF3DE'}}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3B6D11" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </div>
-                <div>
-                  <p className="support-label">Quality guarantee</p>
-                  <p className="support-sub">100% genuine books</p>
-                </div>
-                <svg className="chev-right" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-              </div>
-            </div>
-          </div>
+
 
         </div>
       </div>
