@@ -1,7 +1,7 @@
 // CheckoutPage - with promo from CartContext, step indicator, user name pre-fill
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FiCheckCircle, FiChevronLeft, FiMapPin, FiCreditCard, FiSmartphone, FiDollarSign } from 'react-icons/fi';
+import { FiCheckCircle, FiChevronLeft, FiMapPin, FiCreditCard, FiSmartphone, FiDollarSign, FiBriefcase } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -16,9 +16,10 @@ const INDIAN_STATES = [
 ];
 
 const PAYMENT_OPTIONS = [
-  { id: 'cod',  label: 'Cash on Delivery',    icon: FiDollarSign, desc: 'Pay when your books arrive' },
-  { id: 'upi',  label: 'UPI Payment',          icon: FiSmartphone, desc: 'GPay, PhonePe, BHIM, Paytm' },
-  { id: 'card', label: 'Credit / Debit Card',  icon: FiCreditCard, desc: 'Visa, Mastercard, Rupay' },
+  { id: 'cod',    label: 'Cash on Delivery',    icon: FiDollarSign,  desc: 'Pay when your books arrive' },
+  { id: 'upi',    label: 'UPI Payment',          icon: FiSmartphone,  desc: 'GPay, PhonePe, BHIM, Paytm' },
+  { id: 'card',   label: 'Credit / Debit Card',  icon: FiCreditCard,  desc: 'Visa, Mastercard, Rupay' },
+  { id: 'wallet', label: 'BookMarket Wallet',    icon: FiBriefcase,   desc: 'Pay using your wallet balance' },
 ];
 
 /** Detect card network from first few digits */
@@ -37,7 +38,7 @@ const STEPS = ['Address', 'Payment', 'Confirm'];
 
 export default function CheckoutPage() {
   const { items, promo, dispatch } = useCart();
-  const { user } = useAuth();
+  const { user, wallet, updateWallet } = useAuth();
   const navigate = useNavigate();
 
   const selectedItems = items.filter(i => i.selected);
@@ -57,8 +58,25 @@ export default function CheckoutPage() {
 
   function validateAddress() {
     const e = {};
-    if (!form.name.trim())    e.name    = 'Full name is required';
-    if (!form.address.trim()) e.address = 'Address is required';
+    const alphaOnly = /^[A-Za-z\s]+$/;
+    const alphaNum = /^[A-Za-z0-9\s,.-]+$/;
+
+    if (!form.name.trim()) {
+      e.name = 'Full name is required';
+    } else if (!alphaOnly.test(form.name)) {
+      e.name = 'Name must only contain alphabetic characters';
+    } else if (form.name.trim().length > 20) {
+      e.name = 'Name can be only upto 20 characters';
+    }
+
+    if (!form.address.trim()) {
+      e.address = 'Address is required';
+    } else if (!alphaNum.test(form.address)) {
+      e.address = 'Address must be alphanumeric';
+    } else if (form.address.trim().length > 50) {
+      e.address = 'Address can be only upto 50 characters';
+    }
+
     if (!form.city.trim())    e.city    = 'City is required';
     if (!form.state)          e.state   = 'Please select a state';
     if (!/^\d{6}$/.test(form.pincode))         e.pincode = 'Enter a valid 6-digit pincode';
@@ -68,12 +86,30 @@ export default function CheckoutPage() {
 
   function validatePayment() {
     const e = {};
+    if (payment === 'wallet') {
+      if (wallet < total) e.wallet = `Insufficient balance. Your balance is ₹${wallet.toLocaleString()}`;
+    }
     if (payment === 'upi' && !/\S+@\S+/.test(upiId)) e.upiId = 'Enter a valid UPI ID (e.g. name@upi)';
     if (payment === 'card') {
       if (!/^\d{16}$/.test(card.number.replace(/\s/g, ''))) e.cardNumber = 'Enter a valid 16-digit card number';
       if (!card.name.trim())                                 e.cardName   = 'Cardholder name is required';
-      if (!/^\d{2}\/\d{2}$/.test(card.expiry))              e.cardExpiry = 'Enter expiry as MM/YY';
-      if (!/^\d{3,4}$/.test(card.cvv))                      e.cardCvv    = 'Enter a valid CVV';
+      
+      // Expiry validation: MM/YY, future date
+      if (!/^\d{2}\/\d{2}$/.test(card.expiry)) {
+        e.cardExpiry = 'Enter expiry as MM/YY';
+      } else {
+        const [m, y] = card.expiry.split('/').map(Number);
+        const now = new Date();
+        const currMonth = now.getMonth() + 1;
+        const currYear = Number(now.getFullYear().toString().slice(-2));
+        if (m < 1 || m > 12) {
+          e.cardExpiry = 'Invalid month (01-12)';
+        } else if (y < currYear || (y === currYear && m < currMonth)) {
+          e.cardExpiry = 'Card has expired';
+        }
+      }
+
+      if (!/^\d{3}$/.test(card.cvv)) e.cardCvv = 'Enter a valid 3-digit CVV';
     }
     return e;
   }
@@ -97,6 +133,10 @@ export default function CheckoutPage() {
     const order = { id, orderTime: Date.now(), items: selectedItems, total, subtotal, discount, promo, address: form, payment };
     const prev = JSON.parse(localStorage.getItem('bm_orders') || '[]');
     localStorage.setItem('bm_orders', JSON.stringify([...prev, order]));
+
+    if (payment === 'wallet') {
+      updateWallet(-total);
+    }
 
     setPlacedOrder(order);
     // Don't persist address — clear it so next order starts fresh (TC11)
@@ -229,15 +269,27 @@ export default function CheckoutPage() {
                     {PAYMENT_OPTIONS.map(opt => {
                       const Icon = opt.icon;
                       const isActive = payment === opt.id;
+                      const isWallet = opt.id === 'wallet';
                       return (
-                        <label key={opt.id} htmlFor={`pay-${opt.id}`} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', borderRadius: 'var(--r-md)', border: `1.5px solid ${isActive ? 'var(--navy-400)' : 'var(--border-default)'}`, background: isActive ? 'var(--navy-50)' : 'var(--bg-surface)', cursor: 'pointer', transition: 'all 200ms' }}>
+                        <label key={opt.id} htmlFor={`pay-${opt.id}`} style={{ 
+                          display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', 
+                          borderRadius: 'var(--r-md)', 
+                          border: `1.5px solid ${isActive ? 'var(--navy-400)' : 'var(--border-default)'}`, 
+                          background: isActive ? 'var(--navy-50)' : 'var(--bg-surface)', 
+                          cursor: 'pointer', transition: 'all 200ms',
+                          opacity: (isWallet && wallet < total) ? 0.6 : 1
+                        }}>
                           <input id={`pay-${opt.id}`} type="radio" name="payment" value={opt.id} checked={isActive} onChange={() => setPayment(opt.id)} style={{ width: 16, height: 16, accentColor: 'var(--navy-600)', cursor: 'pointer' }} />
                           <div style={{ width: 40, height: 40, borderRadius: 'var(--r-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isActive ? 'var(--navy-600)' : 'var(--bg-base)', color: isActive ? 'white' : 'var(--text-muted)', transition: 'all 200ms' }}>
                             <Icon size={18} />
                           </div>
-                          <div>
-                            <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>{opt.label}</p>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>{opt.label}</p>
+                              {isWallet && <span style={{ fontSize: '0.75rem', fontWeight: 700, color: wallet >= total ? '#16a34a' : '#E24B4A' }}>Balance: ₹{wallet.toLocaleString()}</span>}
+                            </div>
                             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>{opt.desc}</p>
+                            {isWallet && wallet < total && <p style={{ fontSize: '0.6875rem', color: '#E24B4A', marginTop: 4, fontWeight: 600 }}>Need ₹{(total - wallet).toLocaleString()} more</p>}
                           </div>
                         </label>
                       );
@@ -265,7 +317,7 @@ export default function CheckoutPage() {
                           <input id="card-expiry" type="text" maxLength={5} value={card.expiry} onChange={e => { let v = e.target.value.replace(/\D/g, ''); if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2, 4); setCard(c => ({ ...c, expiry: v })); }} className={`input-field ${errors.cardExpiry ? 'error' : ''}`} style={{ fontFamily: "'DM Mono', monospace" }} placeholder="MM/YY" inputMode="numeric" />
                         </Field>
                         <Field id="card-cvv" label="CVV" error={errors.cardCvv} required>
-                          <input id="card-cvv" type="password" maxLength={4} value={card.cvv} onChange={e => setCard(c => ({ ...c, cvv: e.target.value.replace(/\D/g, '') }))} className={`input-field ${errors.cardCvv ? 'error' : ''}`} style={{ fontFamily: "'DM Mono', monospace", letterSpacing: '0.2em' }} placeholder="•••" inputMode="numeric" />
+                          <input id="card-cvv" type="password" maxLength={3} value={card.cvv} onChange={e => setCard(c => ({ ...c, cvv: e.target.value.replace(/\D/g, '').slice(0, 3) }))} className={`input-field ${errors.cardCvv ? 'error' : ''}`} style={{ fontFamily: "'DM Mono', monospace", letterSpacing: '0.2em' }} placeholder="•••" inputMode="numeric" />
                         </Field>
                       </div>
 

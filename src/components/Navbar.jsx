@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
 export default function Navbar({ onSearch, onMenuToggle, menuOpen, searchValue }) {
-  const { user, logout } = useAuth();
+  const { user, wallet, logout } = useAuth();
   const { cartCount, wishlist } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
@@ -170,6 +170,25 @@ export default function Navbar({ onSearch, onMenuToggle, menuOpen, searchValue }
             <span className="nav-badge">{cartCount > 9 ? '9+' : cartCount}</span>
           )}
         </Link>
+
+        {/* Wallet Display */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.375rem', 
+          padding: '0 0.625rem', 
+          height: 32, 
+          borderRadius: 8, 
+          background: 'rgba(22, 163, 74, 0.08)', 
+          border: '1px solid rgba(22, 163, 74, 0.2)',
+          color: '#16a34a',
+          fontSize: '0.8125rem',
+          fontWeight: 700,
+          margin: '0 0.25rem'
+        }} title="Wallet Balance">
+          <span style={{ fontSize: '1rem' }}>💰</span>
+          <span>₹{(wallet || 0).toLocaleString()}</span>
+        </div>
 
         {/* Profile */}
         <div style={{ position: 'relative' }} ref={profileRef}>

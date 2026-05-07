@@ -4,7 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useBooks } from '../context/BooksContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { FiChevronLeft, FiClock, FiMinus, FiPlus, FiTrash2, FiSearch, FiPackage } from 'react-icons/fi';
+import { FiChevronLeft, FiClock, FiMinus, FiPlus, FiTrash2, FiSearch, FiPackage, FiBriefcase } from 'react-icons/fi';
 
 const PACKING_MINS  = 3;
 const DELIVERY_MINS = 10;
@@ -315,6 +315,55 @@ function CancelDialog({ order, onConfirm, onClose }) {
   );
 }
 
+/* ── Pay Difference Dialog ────────────────────────────────────── */
+function PayDifferenceDialog({ diff, onConfirm, onCancel }) {
+  const [method, setMethod] = useState('online');
+  return (
+    <div className="cdlg-backdrop" onClick={onCancel}>
+      <div className="cdlg" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="cdlg-icon-wrap" style={{ background: '#FFF7ED', border: '1px solid #FED7AA' }}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#EA580C" strokeWidth="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <h2 className="cdlg-title">Additional Payment</h2>
+        <p className="cdlg-body">Your order total has increased. Please choose a payment method for the difference.</p>
+        
+        <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border-default)', borderRadius: 12, padding: '12px 16px', margin: '16px 0', textAlign: 'left' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Difference to pay</span>
+            <span style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--accent-primary)' }}>₹{diff.toLocaleString()}</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12, borderRadius: 8, border: `1px solid ${method === 'online' ? '#185FA5' : 'var(--border-default)'}`, background: method === 'online' ? '#F0F7FF' : 'transparent', cursor: 'pointer' }}>
+            <input type="radio" name="payDiff" checked={method === 'online'} onChange={() => setMethod('online')} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '0.875rem', fontWeight: 700 }}>Pay Online Now</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>UPI, Card, or Net Banking</p>
+            </div>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12, borderRadius: 8, border: `1px solid ${method === 'cod' ? '#185FA5' : 'var(--border-default)'}`, background: method === 'cod' ? '#F0F7FF' : 'transparent', cursor: 'pointer' }}>
+            <input type="radio" name="payDiff" checked={method === 'cod'} onChange={() => setMethod('cod')} />
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '0.875rem', fontWeight: 700 }}>Cash on Delivery</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pay the difference at your doorstep</p>
+            </div>
+          </label>
+        </div>
+
+        <div className="cdlg-actions">
+          <button className="cdlg-btn-keep" onClick={onCancel}>Cancel Edit</button>
+          <button className="cdlg-btn-cancel" style={{ background: '#0C447C', borderColor: '#0C447C' }} onClick={() => onConfirm(method)}>
+            Proceed to Pay ₹{diff.toLocaleString()}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OrderCard({
   order, now, isEditing, editSession, searchQuery,
   recommendations, updatedId, updatedInfo,
@@ -542,9 +591,10 @@ export default function OrdersPage() {
   const [updatedOrderId, setUpdatedOrderId] = useState(null);
   const [updatedInfo,    setUpdatedInfo]    = useState(null);
   const [cancelTarget,   setCancelTarget]   = useState(null); // order object to cancel
+  const [payDiffTarget,  setPayDiffTarget]  = useState(null); // { diff, orderId, method }
 
   const { allBooks } = useBooks();
-  const { user }     = useAuth();
+  const { user, wallet, updateWallet } = useAuth();
   const navigate     = useNavigate();
 
   useEffect(() => {
@@ -572,13 +622,37 @@ export default function OrdersPage() {
 
   function handleSaveChanges() {
     if (!editSession.items.length) { toast.error('Order cannot be empty!', { style: TOAST_STYLE }); return; }
-    const updated = orders.map(o => o.id === editSession.id ? editSession : o);
+    
+    const originalOrder = orders.find(o => o.id === editSession.id);
+    const diff = editSession.total - originalOrder.total;
+
+    if (diff > 0) {
+      // Price increased, need extra payment
+      setPayDiffTarget({ diff, session: { ...editSession } });
+      return;
+    }
+
+    finalizeOrderSave(editSession, diff);
+  }
+
+  function finalizeOrderSave(session, diff) {
+    const originalOrder = orders.find(o => o.id === session.id);
+    
+    // If price decreased and it was paid online, refund to wallet
+    if (diff < 0 && (originalOrder.payment === 'upi' || originalOrder.payment === 'card')) {
+      const refundAmount = Math.abs(diff);
+      updateWallet(refundAmount);
+      toast.success(`₹${refundAmount} refunded to your wallet!`, { icon: '💰', style: TOAST_STYLE });
+    }
+
+    const updated = orders.map(o => o.id === session.id ? session : o);
     setOrders(updated);
     localStorage.setItem('bm_orders', JSON.stringify(updated));
-    setUpdatedOrderId(editSession.id);
-    setUpdatedInfo({ items: editSession.items.length, total: editSession.total });
+    setUpdatedOrderId(session.id);
+    setUpdatedInfo({ items: session.items.length, total: session.total });
     setEditingOrderId(null);
     setEditSession(null);
+    setPayDiffTarget(null);
     toast.success('Order updated!', { style: TOAST_STYLE });
     setTimeout(() => { setUpdatedOrderId(null); setUpdatedInfo(null); }, 4000);
   }
@@ -590,11 +664,19 @@ export default function OrdersPage() {
 
   function confirmCancelOrder() {
     if (!cancelTarget) return;
+    
+    // Refund logic for cancellations
+    if (cancelTarget.payment === 'upi' || cancelTarget.payment === 'card') {
+      updateWallet(cancelTarget.total);
+      toast.success(`Full refund of ₹${cancelTarget.total.toLocaleString()} added to your wallet!`, { icon: '💰', style: TOAST_STYLE });
+    } else {
+      toast.success('Order cancelled successfully.');
+    }
+
     const updated = orders.filter(o => o.id !== cancelTarget.id);
     setOrders(updated);
     localStorage.setItem('bm_orders', JSON.stringify(updated));
     setCancelTarget(null);
-    toast.success('Order cancelled successfully.');
   }
 
   function updateItemQty(bookId, delta) {
@@ -734,6 +816,34 @@ export default function OrdersPage() {
         </div>
 
         <div className="right">
+          {/* Wallet Card */}
+          <div className="sidebar-card wallet-card" style={{ background: 'linear-gradient(135deg, #0a1628 0%, #1e3a5f 100%)', color: 'white', border: 'none' }}>
+            <div className="sc-hdr" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'transparent' }}>
+              <p className="sc-title" style={{ color: '#f4b942', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <FiBriefcase size={14} /> My Wallet
+              </p>
+              <span style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.05em' }}>PREMIUM</span>
+            </div>
+            <div className="sc-body">
+              <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>Available Balance</p>
+              <p style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f4b942', fontFamily: "'DM Mono', monospace" }}>₹{wallet?.toLocaleString()}</p>
+              <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+                <button 
+                  onClick={() => toast.success('Top-up feature coming soon!', { style: TOAST_STYLE })}
+                  style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none', background: '#f4b942', color: '#0a1628', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  + Add Money
+                </button>
+                <button 
+                  onClick={() => toast('Transaction history is coming soon.', { icon: '📜', style: TOAST_STYLE })}
+                  style={{ flex: 1, padding: '8px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  History
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="sidebar-card">
             <div className="sc-hdr">
               <p className="sc-title">Account</p>
@@ -811,51 +921,33 @@ export default function OrdersPage() {
             </div>
           )}
 
-          <div className="sidebar-card">
-            <div className="sc-hdr"><p className="sc-title">Need help?</p></div>
-            <div className="sc-body" style={{padding: '6px 14px'}}>
-              <div className="support-row">
-                <div className="support-icon" style={{background: '#E6F1FB'}}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                </div>
-                <div>
-                  <p className="support-label">Contact support</p>
-                  <p className="support-sub">Chat with our team</p>
-                </div>
-                <svg className="chev-right" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-              </div>
-              <div className="support-row">
-                <div className="support-icon" style={{background: '#FAEEDA'}}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#854F0B" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                </div>
-                <div>
-                  <p className="support-label">Return policy</p>
-                  <p className="support-sub">7-day return window</p>
-                </div>
-                <svg className="chev-right" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-              </div>
-              <div className="support-row">
-                <div className="support-icon" style={{background: '#EAF3DE'}}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3B6D11" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </div>
-                <div>
-                  <p className="support-label">Quality guarantee</p>
-                  <p className="support-sub">100% genuine books</p>
-                </div>
-                <svg className="chev-right" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-              </div>
-            </div>
-          </div>
+
 
         </div>
       </div>
 
-      {/* Cancel Order Dialog */}
-      <CancelDialog
-        order={cancelTarget}
-        onConfirm={confirmCancelOrder}
-        onClose={() => setCancelTarget(null)}
+      {/* Dialogs */}
+      <CancelDialog 
+        order={cancelTarget} 
+        onConfirm={confirmCancelOrder} 
+        onClose={() => setCancelTarget(null)} 
       />
+      
+      {payDiffTarget && (
+        <PayDifferenceDialog 
+          diff={payDiffTarget.diff} 
+          onConfirm={(method) => {
+            const session = { ...payDiffTarget.session };
+            if (method === 'online') {
+              toast.success('Additional payment successful!', { icon: '💳' });
+            } else {
+              toast.success('Remaining amount will be collected as Cash on Delivery.', { icon: '💵' });
+            }
+            finalizeOrderSave(session, payDiffTarget.diff);
+          }} 
+          onCancel={() => setPayDiffTarget(null)} 
+        />
+      )}
 
       <style>{`
         .page{background:var(--bg-base);min-height:calc(100vh - var(--navbar-h));}

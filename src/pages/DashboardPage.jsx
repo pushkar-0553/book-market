@@ -89,7 +89,7 @@ export default function DashboardPage() {
                 onClick={() => handleBranchSelect('CSE')}
                 style={{ marginTop: '0.5rem' }}
               >
-                Start with CSE
+                Explore Now!
               </button>
             </div>
           ) : (

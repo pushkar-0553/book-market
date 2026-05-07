@@ -11,7 +11,9 @@ function authReducer(state, action) {
     case 'LOGIN':
       return { ...state, isAuthenticated: true, user: action.payload, error: null };
     case 'LOGOUT':
-      return { isAuthenticated: false, user: null, error: null };
+      return { isAuthenticated: false, user: null, error: null, wallet: 0 };
+    case 'UPDATE_WALLET':
+      return { ...state, wallet: state.wallet + action.payload };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
     case 'CLEAR_ERROR':
@@ -25,20 +27,30 @@ const initialState = {
   isAuthenticated: false,
   user: null,
   error: null,
+  wallet: 500, // Initial balance for demo
 };
 
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState, () => {
-    // Rehydrate — check localStorage first, then sessionStorage
     try {
       const saved = localStorage.getItem('bm_auth') || sessionStorage.getItem('bm_auth_session');
+      const savedWallet = localStorage.getItem('bm_wallet');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return { isAuthenticated: true, user: parsed, error: null };
+        return { 
+          isAuthenticated: true, 
+          user: parsed, 
+          error: null, 
+          wallet: savedWallet ? Number(savedWallet) : 500 
+        };
       }
     } catch {}
     return initialState;
   });
+
+  useEffect(() => {
+    localStorage.setItem('bm_wallet', state.wallet.toString());
+  }, [state.wallet]);
 
   // Persist auth state to the correct storage based on remember flag
   useEffect(() => {
@@ -69,8 +81,11 @@ export function AuthProvider({ children }) {
 
   function logout() {
     dispatch({ type: 'LOGOUT' });
-    // Clear any stored location so next login goes to dashboard, not a previous protected page
     try { sessionStorage.removeItem('bm_from_path'); } catch {}
+  }
+
+  function updateWallet(amount) {
+    dispatch({ type: 'UPDATE_WALLET', payload: amount });
   }
 
   function clearError() {
@@ -78,7 +93,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, clearError }}>
+    <AuthContext.Provider value={{ ...state, login, logout, updateWallet, clearError }}>
       {children}
     </AuthContext.Provider>
   );
