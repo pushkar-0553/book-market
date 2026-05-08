@@ -6,10 +6,10 @@ import { FiMail, FiLock, FiEye, FiEyeOff, FiAlertCircle, FiArrowRight, FiInfo, F
 import { useAuth } from '../context/AuthContext';
 
 const FEATURES = [
-  { icon: '📚', label: '500+ Books',      sub: 'Across all branches' },
-  { icon: '💰', label: 'Best Prices',     sub: 'Student-friendly rates' },
+  { icon: '📚', label: '500+ Books', sub: 'Across all branches' },
+  { icon: '💰', label: 'Best Prices', sub: 'Student-friendly rates' },
   { icon: '⚡', label: '10-min Delivery', sub: 'Lightning fast' },
-  { icon: '🎓', label: 'Semester-wise',   sub: 'Curated catalog' },
+  { icon: '🎓', label: 'Semester-wise', sub: 'Curated catalog' },
 ];
 
 const STATS = [
@@ -49,9 +49,9 @@ function CreditsPanel() {
       {/* Main Logo Section */}
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <div style={{ display: 'inline-block', padding: '1rem', background: 'rgba(242,116,5,0.05)', borderRadius: 24, border: `1px solid ${vOrange}22`, marginBottom: '1.5rem' }}>
-          <img 
-            src="/vcube logo.png" 
-            alt="VCube Logo" 
+          <img
+            src="/vcube logo.png"
+            alt="VCube Logo"
             style={{ height: 80, width: 'auto', filter: 'drop-shadow(0 0 20px rgba(242,116,5,0.3))' }}
             onError={(e) => { e.target.src = 'https://ui-avatars.com/api/?name=V+CUBE&background=F27405&color=fff&size=128'; }}
           />
@@ -68,14 +68,14 @@ function CreditsPanel() {
           <div style={{ width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', border: `3px solid ${vOrange}`, boxShadow: `0 0 20px ${vOrange}33`, marginBottom: '0.75rem' }}>
             <img src="/ankalla rao sir.jpeg" alt="Chairman" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = 'https://ui-avatars.com/api/?name=Ankala+Rao&background=222&color=F27405'; }} />
           </div>
-          <p style={{ fontSize: '0.75rem', fontWeight: 900, color: 'white', textTransform: 'uppercase', margin: 0 }}>Mr. Ankala Rao</p>
+          <p style={{ fontSize: '0.75rem', fontWeight: 900, color: 'white', textTransform: 'uppercase', margin: 0 }}>Mr.M Ankala Rao</p>
           <p style={{ fontSize: '0.625rem', color: vOrange, fontWeight: 700 }}>Managing Director</p>
         </div>
         <div style={{ textAlign: 'center' }}>
           <div style={{ width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', border: `3px solid ${vOrange}`, boxShadow: `0 0 20px ${vOrange}33`, marginBottom: '0.75rem' }}>
             <img src="/vamsi sir.jpeg" alt="Chairman" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = 'https://ui-avatars.com/api/?name=Vamsi+Reddy&background=222&color=F27405'; }} />
           </div>
-          <p style={{ fontSize: '0.75rem', fontWeight: 900, color: 'white', textTransform: 'uppercase', margin: 0 }}>Mr. Vamsi Reddy</p>
+          <p style={{ fontSize: '0.75rem', fontWeight: 900, color: 'white', textTransform: 'uppercase', margin: 0 }}>Mr.A Vamsi Krishna</p>
           <p style={{ fontSize: '0.625rem', color: vOrange, fontWeight: 700 }}>Director</p>
         </div>
       </div>
@@ -96,7 +96,7 @@ function CreditsPanel() {
           <img src="/mentor-bvr.jpeg" alt="Mentor" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = 'https://ui-avatars.com/api/?name=BVR+Manohar&background=F27405&color=fff'; }} />
         </div>
         <div>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: 900, color: 'white', marginBottom: '0.25rem' }}>Mr. BVR Manohar Rao</h3>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 900, color: 'white', marginBottom: '0.25rem' }}>Mr. BRV Manohar Rao</h3>
           <p style={{ fontSize: '0.75rem', fontWeight: 800, color: vOrange, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Testing Mentor & Architect</p>
           <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, margin: 0 }}>
             Visionary behind the testing sandbox, providing expert guidance for student skill enhancement.
@@ -198,20 +198,20 @@ function BookMarketPanel() {
 // ── Main Login Page ──────────────────────────────────────────────────────────
 export default function LoginPage() {
   const { login, isAuthenticated, error, clearError } = useAuth();
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [email,      setEmail]      = useState('');
-  const [password,   setPassword]   = useState('');
-  const [showPass,   setShowPass]   = useState(false);
-  const [remember,   setRemember]   = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [localError, setLocalError] = useState('');
-  const [mounted,    setMounted]    = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Left panel state: 'bookmarket' | 'credits'
-  const [leftPanel,  setLeftPanel]  = useState('bookmarket');
-  const [panelFade,  setPanelFade]  = useState(true); // true = visible
+  const [leftPanel, setLeftPanel] = useState('bookmarket');
+  const [panelFade, setPanelFade] = useState(true); // true = visible
   const timerRef = useRef(null);
 
   const from = '/dashboard';
@@ -260,7 +260,7 @@ export default function LoginPage() {
     setLocalError('');
     clearError();
     if (!email.trim()) { setLocalError('Email address is required.'); return; }
-    if (!password)     { setLocalError('Password is required.'); return; }
+    if (!password) { setLocalError('Password is required.'); return; }
     setSubmitting(true);
     await new Promise(r => setTimeout(r, 750));
     const ok = login(email, password, remember);

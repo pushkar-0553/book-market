@@ -259,6 +259,15 @@ export default function Navbar({ onSearch, onMenuToggle, menuOpen, searchValue }
               >
                 <FiHeart size={15} /> Wishlist {wishCount > 0 && `(${wishCount})`}
               </Link>
+              <Link
+                to="/profile"
+                className="profile-dropdown-item"
+                role="menuitem"
+                onClick={() => setProfileOpen(false)}
+                style={{ color: '#16a34a' }}
+              >
+                <span style={{ fontSize: '14px' }}>💰</span> Top-up Wallet
+              </Link>
               <div style={{ height: 1, background: 'var(--border-subtle)', margin: '0.25rem 0' }} />
               <button
                 id="nav-logout"

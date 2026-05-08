@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiClock, FiArrowRight } from 'react-icons/fi';
+import { FiClock, FiArrowRight, FiUser } from 'react-icons/fi';
+import { useDelivery } from '../context/DeliveryContext';
 
 const PACKING_MINS = 3;
 const DELIVERY_MINS = 10;
@@ -11,6 +12,7 @@ const LiveOrderTracker = () => {
   const [now, setNow] = useState(Date.now());
   const navigate = useNavigate();
   const location = useLocation();
+  const { getAgentForOrder } = useDelivery();
 
   useEffect(() => {
     const checkOrders = () => {
@@ -65,6 +67,8 @@ const LiveOrderTracker = () => {
   // Final check to hide if elapsed >= DELIVERY_MINS
   if (elapsedMins >= DELIVERY_MINS) return null;
 
+  const agent = getAgentForOrder(liveOrder.id);
+
   return (
     <div 
       className="live-order-toast"
@@ -103,11 +107,16 @@ const LiveOrderTracker = () => {
       </div>
       
       <div style={{ flex: 1 }}>
-        <p style={{ fontSize: '14px', fontWeight: 700, marginBottom: '2px' }}>
+        <p style={{ fontSize: '14px', fontWeight: 700, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: 6 }}>
           {statusText}
+          {agent && (
+            <span style={{fontSize: '10px', background: 'var(--gold-400)', color: 'var(--navy-900)', padding: '1px 6px', borderRadius: 10, fontWeight: 800}}>
+              {agent.name.split(' ')[0]}
+            </span>
+          )}
         </p>
         <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
-          {timeLeftMins} {timeLeftMins === 1 ? 'min' : 'mins'} left · <span style={{ color: 'var(--gold-400)', fontWeight: 600 }}>Check order now</span>
+          {timeLeftMins} {timeLeftMins === 1 ? 'min' : 'mins'} left · <span style={{ color: 'var(--gold-400)', fontWeight: 600 }}>Track Agent</span>
         </p>
       </div>
 

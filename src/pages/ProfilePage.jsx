@@ -4,17 +4,20 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { 
   FiUser, FiMail, FiPhone, FiCalendar, FiCamera, 
-  FiChevronLeft, FiCheckCircle, FiAlertCircle 
+  FiChevronLeft, FiCheckCircle, FiAlertCircle, FiX, FiCreditCard, FiSmartphone
 } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { FaYahoo } from 'react-icons/fa';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import TopUpDialog from '../components/TopUpDialog';
 
 const ProfilePage = () => {
-  const { user, logout, updateProfile } = useAuth();
+  const { user, wallet, logout, updateProfile, updateWallet } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+
+  const [isTopUpOpen, setIsTopUpOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -164,8 +167,18 @@ const ProfilePage = () => {
     }
   };
 
+  const handleTopUp = (amount) => {
+    updateWallet(amount);
+  };
+
   return (
-    <div className="profile-page animate-fade-in" style={{
+    <>
+      <TopUpDialog 
+        isOpen={isTopUpOpen} 
+        onClose={() => setIsTopUpOpen(false)} 
+        onTopUp={handleTopUp} 
+      />
+      <div className="profile-page animate-fade-in" style={{
       minHeight: 'calc(100vh - var(--navbar-h))',
       background: 'var(--bg-base)',
       padding: '2rem 1rem'
@@ -252,6 +265,30 @@ const ProfilePage = () => {
                 <p style={{ fontWeight: 700, marginBottom: '2px', color: 'var(--text-primary)' }}>Account Type</p>
                 Student Academic Account
               </div>
+
+              {/* Wallet Section */}
+              <div style={{ 
+                padding: '1rem', borderRadius: '12px', 
+                background: 'rgba(22, 163, 74, 0.05)', 
+                border: '1px solid rgba(22, 163, 74, 0.15)',
+                textAlign: 'left'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <p style={{ fontWeight: 700, fontSize: '0.8125rem', color: '#16a34a' }}>Wallet Balance</p>
+                  <span style={{ fontSize: '1.125rem' }}>💰</span>
+                </div>
+                <p className="num" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#16a34a', marginBottom: '0.75rem' }}>
+                  ₹{(wallet || 0).toLocaleString()}
+                </p>
+                <button 
+                  onClick={() => setIsTopUpOpen(true)}
+                  className="btn btn-primary btn-sm" 
+                  style={{ width: '100%', background: '#16a34a', color: 'white', boxShadow: '0 4px 12px rgba(22, 163, 74, 0.2)' }}
+                >
+                  + Add Money
+                </button>
+              </div>
+
               <button 
                 onClick={logout}
                 className="btn btn-danger" 
@@ -382,6 +419,7 @@ const ProfilePage = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

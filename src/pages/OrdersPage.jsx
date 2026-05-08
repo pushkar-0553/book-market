@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useBooks } from '../context/BooksContext';
 import { useAuth } from '../context/AuthContext';
+import { useDelivery } from '../context/DeliveryContext';
 import toast from 'react-hot-toast';
-import { FiChevronLeft, FiClock, FiMinus, FiPlus, FiTrash2, FiSearch, FiPackage, FiBriefcase } from 'react-icons/fi';
+import { FiChevronLeft, FiClock, FiMinus, FiPlus, FiTrash2, FiSearch, FiPackage, FiBriefcase, FiX, FiUser, FiPhone } from 'react-icons/fi';
+import TopUpDialog from '../components/TopUpDialog';
 
 const PACKING_MINS  = 3;
 const DELIVERY_MINS = 10;
@@ -369,6 +371,7 @@ function OrderCard({
   recommendations, updatedId, updatedInfo,
   onModify, onCancelEdit, onSaveChanges,
   onQtyChange, onRemove, onAddBook, onSearchChange, onCancelOrder,
+  onTip, agent
 }) {
   const elapsedMs   = now - order.orderTime;
   const elapsedMins = elapsedMs / MS_PER_MIN;
@@ -463,6 +466,74 @@ function OrderCard({
                 <p className="strip-text">Order is out for delivery</p>
                 <p style={{fontSize: '12px', color: '#854F0B', marginTop: '2px'}}>Arriving in ~{timeLeftMins} min</p>
               </div>
+            </div>
+          )}
+          
+          {status === 'DELIVERING' && (
+            <div style={{
+              background: '#FDFCF0',
+              border: '1px solid #FAC775',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 2px 8px rgba(133,79,11,0.05)',
+              animation: 'fadeIn 0.3s ease'
+            }}>
+              {agent ? (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                      width: '44px', height: '44px', borderRadius: '50%',
+                      background: 'white', border: '2px solid #FAC775',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: '#854F0B', boxShadow: 'inset 0 0 10px rgba(0,0,0,0.05)'
+                    }}>
+                      <FiUser size={22} />
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#854F0B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Delivery Partner</span>
+                        <span style={{ fontSize: '10px', background: '#FAC775', color: '#633806', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>⭐ {agent.rating}</span>
+                      </div>
+                      <p style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {agent.name}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+                    <a href={`tel:${agent.mobile}`} style={{ 
+                      display: 'flex', alignItems: 'center', gap: '6px', 
+                      background: '#16a34a', color: 'white', 
+                      padding: '6px 12px', borderRadius: '8px', 
+                      fontSize: '12px', fontWeight: 700, textDecoration: 'none'
+                    }}>
+                      <FiPhone size={14} /> {agent.mobile}
+                    </a>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {[10, 20, 50].map(amt => (
+                        <button 
+                          key={amt}
+                          onClick={() => onTip(order.id, amt)}
+                          style={{
+                            padding: '3px 7px', borderRadius: '6px', border: '1px solid #FAC775',
+                            background: 'white', color: '#854F0B', fontSize: '10px', fontWeight: 700, cursor: 'pointer'
+                          }}
+                        >
+                          Tip ₹{amt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div style={{ width: '100%', textAlign: 'center', padding: '4px 0', fontSize: '12px', color: '#854F0B', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <span className="animate-pulse">⏳</span> Assigning nearest delivery partner...
+                </div>
+              )}
             </div>
           )}
           {status === 'DELIVERED' && (
@@ -592,10 +663,12 @@ export default function OrdersPage() {
   const [updatedInfo,    setUpdatedInfo]    = useState(null);
   const [cancelTarget,   setCancelTarget]   = useState(null); // order object to cancel
   const [payDiffTarget,  setPayDiffTarget]  = useState(null); // { diff, orderId, method }
+  const [isTopUpOpen,    setIsTopUpOpen]    = useState(false);
 
   const { allBooks } = useBooks();
   const { user, wallet, updateWallet } = useAuth();
   const { wishlist } = useCart();
+  const { assignAgent, getAgentForOrder } = useDelivery();
   const navigate     = useNavigate();
 
   const wishCount = wishlist?.length || 0;
@@ -615,7 +688,19 @@ export default function OrdersPage() {
 
     saved.sort((a, b) => b.orderTime - a.orderTime);
     setOrders(saved);
-    const iv = setInterval(() => setNow(Date.now()), 1000);
+    
+    const iv = setInterval(() => {
+      const nowTime = Date.now();
+      setNow(nowTime);
+      
+      // Auto-assign agents to orders that are in Delivering phase but don't have an agent yet
+      saved.forEach(order => {
+        const emins = (nowTime - order.orderTime) / MS_PER_MIN;
+        if (emins >= PACKING_MINS && emins < DELIVERY_MINS) {
+          assignAgent(order.id, nowTime);
+        }
+      });
+    }, 1000);
     return () => clearInterval(iv);
   }, []);
 
@@ -673,8 +758,26 @@ export default function OrdersPage() {
   }
 
   function handleCancelOrder(orderId) {
-    const order = orders.find(o => o.id === orderId);
-    if (order) setCancelTarget(order);
+    setCancelTarget(orders.find(o => o.id === orderId));
+  }
+
+  function handleTip(orderId, amount) {
+    if (wallet < amount) {
+      toast.error('Insufficient wallet balance for tip!', { style: TOAST_STYLE });
+      return;
+    }
+
+    const orderIndex = orders.findIndex(o => o.id === orderId);
+    if (orderIndex === -1) return;
+
+    const updatedOrders = [...orders];
+    const order = updatedOrders[orderIndex];
+    order.tip = (order.tip || 0) + amount;
+    
+    updateWallet(-amount);
+    localStorage.setItem('bm_orders', JSON.stringify(updatedOrders));
+    setOrders(updatedOrders);
+    toast.success(`₹${amount} tip added for delivery agent!`, { icon: '🙌', style: TOAST_STYLE });
   }
 
   function confirmCancelOrder() {
@@ -825,6 +928,8 @@ export default function OrdersPage() {
                   onAddBook={addBookToOrder}
                   onSearchChange={setSearchQuery}
                   onCancelOrder={handleCancelOrder}
+                  onTip={handleTip}
+                  agent={getAgentForOrder(order.id)}
                 />
              </div>
             );
@@ -845,7 +950,7 @@ export default function OrdersPage() {
               <p style={{ fontSize: '1.75rem', fontWeight: 800, color: '#f4b942', fontFamily: "'DM Mono', monospace" }}>₹{wallet?.toLocaleString()}</p>
               <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
                 <button 
-                  onClick={() => toast.success('Top-up feature coming soon!', { style: TOAST_STYLE })}
+                  onClick={() => setIsTopUpOpen(true)}
                   style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none', background: '#f4b942', color: '#0a1628', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
                 >
                   + Add Money
@@ -970,6 +1075,12 @@ export default function OrdersPage() {
           onCancel={() => setPayDiffTarget(null)} 
         />
       )}
+      
+      <TopUpDialog 
+        isOpen={isTopUpOpen} 
+        onClose={() => setIsTopUpOpen(false)} 
+        onTopUp={(amt) => updateWallet(amt)} 
+      />
 
       <style>{`
         .page{background:var(--bg-base);min-height:calc(100vh - var(--navbar-h));}
