@@ -21,7 +21,7 @@ const CATEGORIES = [
   { id: 'MBR',   label: 'MBA',    emoji: '💼', enabled: false },
 ];
 
-function SidebarContent({ selectedBranch, onSelectBranch, onClose }) {
+function SidebarContent({ selectedBranch, onSelectBranch, onClose, prefix = 'nav' }) {
   const [openCategory, setOpenCategory] = useState('BTEC');
 
   function handleBranchClick(branch) {
@@ -30,12 +30,18 @@ function SidebarContent({ selectedBranch, onSelectBranch, onClose }) {
   }
 
   return (
-    <div className="sidebar-inner">
+    <div className="sidebar-inner" data-testid={`${prefix}-sidebar`}>
 
       {/* Close btn on mobile — shows only when sidebar is a drawer */}
       {onClose && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }} className="sidebar-close-row">
-          <button onClick={onClose} className="btn btn-ghost btn-icon-sm" aria-label="Close sidebar">
+          <button 
+            onClick={onClose} 
+            className="btn btn-ghost btn-icon-sm" 
+            aria-label="Close sidebar"
+            id={`${prefix}-sidebar-close`}
+            data-testid={`${prefix}-sidebar-close`}
+          >
             <FiX size={18} />
           </button>
         </div>
@@ -46,7 +52,8 @@ function SidebarContent({ selectedBranch, onSelectBranch, onClose }) {
       {CATEGORIES.map(cat => (
         <div key={cat.id} style={{ marginBottom: '0.25rem' }}>
           <button
-            id={`sidebar-cat-${cat.id}`}
+            id={`${prefix}-cat-${cat.id.toLowerCase()}`}
+            data-testid={`${prefix}-cat-${cat.id.toLowerCase()}`}
             onClick={() => cat.enabled && setOpenCategory(openCategory === cat.id ? null : cat.id)}
             disabled={!cat.enabled}
             className={`sidebar-cat-btn ${openCategory === cat.id && cat.enabled ? 'active' : ''}`}
@@ -80,11 +87,13 @@ function SidebarContent({ selectedBranch, onSelectBranch, onClose }) {
               {BRANCHES.map(branch => {
                 const meta = BRANCH_META[branch];
                 const isActive = selectedBranch === branch;
+                const branchId = branch.toLowerCase().replace(/\s+/g, '-');
 
                 return (
                   <button
                     key={branch}
-                    id={`sidebar-branch-${branch.toLowerCase()}`}
+                    id={`${prefix}-branch-${branchId}`}
+                    data-testid={`${prefix}-branch-${branchId}`}
                     onClick={() => handleBranchClick(branch)}
                     className={`sidebar-branch-btn ${isActive ? 'active' : ''}`}
                     role="listitem"
@@ -112,7 +121,7 @@ function SidebarContent({ selectedBranch, onSelectBranch, onClose }) {
         <div className="sidebar-promo-body">
           Save on your first order
         </div>
-        <div className="sidebar-promo-code">STUDENT10</div>
+        <div className="sidebar-promo-code" id={`${prefix}-promo-code`} data-testid={`${prefix}-promo-code`}>STUDENT10</div>
         <div style={{ fontSize: '0.6875rem', color: 'rgba(244,185,66,0.6)', marginTop: '0.375rem' }}>
           10% off • Applies at checkout
         </div>
@@ -131,12 +140,18 @@ export default function Sidebar({ selectedBranch, onSelectBranch, isOpen, onClos
         className="sidebar"
         aria-label="Course navigation"
       >
-        <SidebarContent selectedBranch={selectedBranch} onSelectBranch={onSelectBranch} />
+        <SidebarContent 
+          selectedBranch={selectedBranch} 
+          onSelectBranch={onSelectBranch} 
+          prefix="desktop" 
+        />
       </aside>
 
       {/* Mobile overlay backdrop */}
       {isOpen && (
         <div
+          id="sidebar-mobile-overlay"
+          data-testid="sidebar-mobile-overlay"
           style={{
             position: 'fixed', inset: 0,
             background: 'rgba(5, 13, 26, 0.6)',
@@ -165,7 +180,12 @@ export default function Sidebar({ selectedBranch, onSelectBranch, isOpen, onClos
           overflowY: 'auto',
         }}
       >
-        <SidebarContent selectedBranch={selectedBranch} onSelectBranch={onSelectBranch} onClose={onClose} />
+        <SidebarContent 
+          selectedBranch={selectedBranch} 
+          onSelectBranch={onSelectBranch}
+          onClose={onClose} 
+          prefix="mobile"
+        />
       </aside>
     </>
   );

@@ -1593,3 +1593,10 @@ body {
 .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+/* -- React DatePicker Overrides -------------------------------- */
+.react-datepicker-wrapper { width: 100%; }
+.react-datepicker__input-container input { width: 100%; }
+.react-datepicker { font-family: 'DM Sans', sans-serif !important; border: 1px solid var(--border-default) !important; border-radius: var(--r-md) !important; box-shadow: var(--shadow-lg) !important; }
+.react-datepicker__header { background-color: var(--bg-base) !important; border-bottom: 1px solid var(--border-subtle) !important; }
+.react-datepicker__day--selected { background-color: var(--navy-900) !important; border-radius: 4px !important; }
+.react-datepicker__day:hover { background-color: var(--navy-100) !important; }

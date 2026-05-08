@@ -88,6 +88,8 @@ export default function DashboardPage() {
                 className="btn btn-primary btn-lg"
                 onClick={() => handleBranchSelect('CSE')}
                 style={{ marginTop: '0.5rem' }}
+                id="btn-explore-now"
+                data-testid="btn-explore-now"
               >
                 Explore Now!
               </button>
@@ -189,6 +191,7 @@ export default function DashboardPage() {
                         checked={selectedYear === yr}
                         onChange={() => setSelectedYear(yr)}
                         id={`year-filter-${yr}`}
+                        data-testid={`year-filter-${yr.toLowerCase()}`}
                         style={{ accentColor: 'var(--gold-500)', cursor: 'pointer', width: '16px', height: '16px' }}
                       />
                       <span style={{ fontSize: '0.875rem', color: 'var(--text-body)', fontWeight: selectedYear === yr ? 600 : 400 }}>
@@ -233,6 +236,8 @@ export default function DashboardPage() {
                 ].map(({ mode, icon, label }) => (
                   <button
                     key={mode}
+                    id={`view-mode-${mode}`}
+                    data-testid={`view-mode-${mode}`}
                     onClick={() => setViewMode(mode)}
                     aria-label={label}
                     style={{
@@ -277,6 +282,8 @@ export default function DashboardPage() {
                 </p>
                 <button
                   className="btn btn-navy"
+                  id="btn-clear-filters"
+                  data-testid="btn-clear-filters"
                   onClick={() => { setSelectedYear('All'); setSearchQuery(''); }}
                 >
                   Clear Filters

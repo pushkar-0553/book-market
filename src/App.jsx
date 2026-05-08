@@ -13,6 +13,8 @@ import CheckoutPage from './pages/CheckoutPage';
 import WishlistPage from './pages/WishlistPage';
 import OrdersPage from './pages/OrdersPage';
 import BookDetailsPage from './pages/BookDetailsPage';
+import ProfilePage from './pages/ProfilePage';
+import LiveOrderTracker from './components/LiveOrderTracker';
 
 // Layout for secondary protected pages (Cart, Checkout, Orders, Wishlist)
 // Dashboard has its own Navbar instance with search + menu controls
@@ -64,12 +66,15 @@ export default function App() {
                 <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="/orders"   element={<OrdersPage />} />
                 <Route path="/book/:id" element={<BookDetailsPage />} />
+                <Route path="/profile"  element={<ProfilePage />} />
               </Route>
 
               {/* Fallback */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
+
+            <LiveOrderTracker />
 
             <Toaster
               position="bottom-right"

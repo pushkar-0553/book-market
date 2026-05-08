@@ -595,10 +595,24 @@ export default function OrdersPage() {
 
   const { allBooks } = useBooks();
   const { user, wallet, updateWallet } = useAuth();
+  const { wishlist } = useCart();
   const navigate     = useNavigate();
 
+  const wishCount = wishlist?.length || 0;
+
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('bm_orders') || '[]');
+    const raw = JSON.parse(localStorage.getItem('bm_orders') || '[]');
+    
+    // Filter to keep only last 5 days of orders
+    const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
+    const nowTime = Date.now();
+    const saved = raw.filter(o => (nowTime - o.orderTime) < FIVE_DAYS_MS);
+    
+    // Sync back to storage if any were removed
+    if (saved.length !== raw.length) {
+      localStorage.setItem('bm_orders', JSON.stringify(saved));
+    }
+
     saved.sort((a, b) => b.orderTime - a.orderTime);
     setOrders(saved);
     const iv = setInterval(() => setNow(Date.now()), 1000);
@@ -638,8 +652,9 @@ export default function OrdersPage() {
   function finalizeOrderSave(session, diff) {
     const originalOrder = orders.find(o => o.id === session.id);
     
-    // If price decreased and it was paid online, refund to wallet
-    if (diff < 0 && (originalOrder.payment === 'upi' || originalOrder.payment === 'card')) {
+    // If price decreased and it was prepaid, refund to wallet
+    const isPrepaid = originalOrder.payment === 'upi' || originalOrder.payment === 'card' || originalOrder.payment === 'wallet';
+    if (diff < 0 && isPrepaid) {
       const refundAmount = Math.abs(diff);
       updateWallet(refundAmount);
       toast.success(`₹${refundAmount} refunded to your wallet!`, { icon: '💰', style: TOAST_STYLE });
@@ -665,8 +680,9 @@ export default function OrdersPage() {
   function confirmCancelOrder() {
     if (!cancelTarget) return;
     
-    // Refund logic for cancellations
-    if (cancelTarget.payment === 'upi' || cancelTarget.payment === 'card') {
+    // Refund logic for cancellations (UPI, Card, or Wallet)
+    const isPrepaid = cancelTarget.payment === 'upi' || cancelTarget.payment === 'card' || cancelTarget.payment === 'wallet';
+    if (isPrepaid) {
       updateWallet(cancelTarget.total);
       toast.success(`Full refund of ₹${cancelTarget.total.toLocaleString()} added to your wallet!`, { icon: '💰', style: TOAST_STYLE });
     } else {
@@ -850,7 +866,13 @@ export default function OrdersPage() {
             </div>
             <div className="sc-body">
               <div className="account-row">
-                <div className="avatar">{user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'U'}</div>
+                <div className="avatar" style={{ overflow: 'hidden' }}>
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'U'
+                  )}
+                </div>
                 <div>
                   <p className="account-name">{user?.name || 'Student'}</p>
                   <p className="account-branch">{user?.email || 'student@bookmarket.com'}</p>
@@ -871,7 +893,7 @@ export default function OrdersPage() {
                 </div>
                 <div className="mini-stat">
                   <p className="ms-label">Wishlist</p>
-                  <p className="ms-val">0</p>
+                  <p className="ms-val">{wishCount}</p>
                 </div>
               </div>
             </div>

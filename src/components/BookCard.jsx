@@ -68,6 +68,7 @@ export default function BookCard({ book, viewMode }) {
     <article
       className={`book-card animate-fade-in${viewMode === 'list' ? ' book-card--list' : ''}`}
       aria-label={`Book: ${book.FullBookName}`}
+      data-testid={`book-card-${book.BookID}`}
     >
       {/* Image area */}
       <div
@@ -101,6 +102,7 @@ export default function BookCard({ book, viewMode }) {
         {/* Wishlist btn */}
         <button
           id={`wish-${book.BookID}`}
+          data-testid={`wish-btn-${book.BookID}`}
           onClick={handleWishlist}
           className={`book-card-wish-btn ${inWish ? 'active' : ''}`}
           aria-label={inWish ? 'Remove from wishlist' : 'Add to wishlist'}
@@ -173,17 +175,25 @@ export default function BookCard({ book, viewMode }) {
                 onClick={e => { e.stopPropagation(); dispatch({ type: 'UPDATE_QUANTITY', payload: { id: book.BookID, qty: cartQty - 1 } }); if (cartQty === 1) dispatch({ type: 'REMOVE_FROM_CART', payload: book.BookID }); }}
                 style={{ width: 24, height: 24, borderRadius: 6, border: '1.5px solid #16a34a', background: 'transparent', color: '#16a34a', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}
                 aria-label="Decrease quantity"
+                data-testid={`decrease-qty-${book.BookID}`}
               >−</button>
-              <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#16a34a', minWidth: 18, textAlign: 'center' }}>{cartQty}</span>
+              <span 
+                style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#16a34a', minWidth: 18, textAlign: 'center' }}
+                data-testid={`cart-qty-${book.BookID}`}
+              >
+                {cartQty}
+              </span>
               <button
                 onClick={handleAddToCart}
                 style={{ width: 24, height: 24, borderRadius: 6, border: '1.5px solid #16a34a', background: '#16a34a', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}
                 aria-label="Increase quantity"
+                data-testid={`increase-qty-${book.BookID}`}
               >+</button>
             </div>
           ) : (
             <button
               id={`cart-btn-${book.BookID}`}
+              data-testid={`add-to-cart-${book.BookID}`}
               onClick={handleAddToCart}
               className="book-card-add-btn default"
               aria-label={`Add ${book.SubjectName} to cart`}

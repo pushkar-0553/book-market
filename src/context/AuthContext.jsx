@@ -11,41 +11,51 @@ function authReducer(state, action) {
     case 'LOGIN':
       return { ...state, isAuthenticated: true, user: action.payload, error: null };
     case 'LOGOUT':
-      return { isAuthenticated: false, user: null, error: null, wallet: 0 };
+      return { ...state, isAuthenticated: false, user: null, error: null }; // Don't reset wallet to 0 here
     case 'UPDATE_WALLET':
       return { ...state, wallet: state.wallet + action.payload };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
     case 'CLEAR_ERROR':
       return { ...state, error: null };
+    case 'UPDATE_PROFILE':
+      return { ...state, user: { ...state.user, ...action.payload } };
     default:
       return state;
   }
 }
 
+const getSavedWallet = () => {
+  const saved = localStorage.getItem('bm_wallet');
+  return saved !== null ? Number(saved) : 500;
+};
+
 const initialState = {
   isAuthenticated: false,
   user: null,
   error: null,
-  wallet: 500, // Initial balance for demo
+  wallet: getSavedWallet(),
 };
 
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState, () => {
     try {
-      const saved = localStorage.getItem('bm_auth') || sessionStorage.getItem('bm_auth_session');
-      const savedWallet = localStorage.getItem('bm_wallet');
-      if (saved) {
-        const parsed = JSON.parse(saved);
+      const savedAuth = localStorage.getItem('bm_auth') || sessionStorage.getItem('bm_auth_session');
+      const wallet = getSavedWallet();
+      
+      if (savedAuth) {
+        const parsed = JSON.parse(savedAuth);
         return { 
           isAuthenticated: true, 
           user: parsed, 
           error: null, 
-          wallet: savedWallet ? Number(savedWallet) : 500 
+          wallet 
         };
       }
-    } catch {}
-    return initialState;
+      return { ...initialState, wallet };
+    } catch {
+      return initialState;
+    }
   });
 
   useEffect(() => {
@@ -92,8 +102,12 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'CLEAR_ERROR' });
   }
 
+  function updateProfile(data) {
+    dispatch({ type: 'UPDATE_PROFILE', payload: data });
+  }
+
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, updateWallet, clearError }}>
+    <AuthContext.Provider value={{ ...state, login, logout, updateWallet, clearError, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

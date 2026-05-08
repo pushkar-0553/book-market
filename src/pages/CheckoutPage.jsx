@@ -132,7 +132,12 @@ export default function CheckoutPage() {
     const id = 'ORD' + Date.now().toString().slice(-8);
     const order = { id, orderTime: Date.now(), items: selectedItems, total, subtotal, discount, promo, address: form, payment };
     const prev = JSON.parse(localStorage.getItem('bm_orders') || '[]');
-    localStorage.setItem('bm_orders', JSON.stringify([...prev, order]));
+    
+    // Maintain only past 5 days of orders to prevent storage bloat
+    const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
+    const filtered = prev.filter(o => (Date.now() - o.orderTime) < FIVE_DAYS_MS);
+    
+    localStorage.setItem('bm_orders', JSON.stringify([...filtered, order]));
 
     if (payment === 'wallet') {
       updateWallet(-total);

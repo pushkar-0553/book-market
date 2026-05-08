@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   FiShoppingCart, FiSearch, FiLogOut,
-  FiHeart, FiMenu, FiX, FiPackage,
+  FiHeart, FiMenu, FiX, FiPackage, FiUser,
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -55,6 +55,7 @@ export default function Navbar({ onSearch, onMenuToggle, menuOpen, searchValue }
       {isDashboard && (
         <button
           id="nav-menu-toggle"
+          data-testid="nav-menu-toggle"
           onClick={onMenuToggle}
           className="nav-icon-btn lg:hidden"
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
@@ -65,7 +66,7 @@ export default function Navbar({ onSearch, onMenuToggle, menuOpen, searchValue }
       )}
 
       {/* Logo */}
-      <Link to="/dashboard" id="nav-logo" className="navbar-logo">
+      <Link to="/dashboard" id="nav-logo" data-testid="nav-logo" className="navbar-logo">
         <div className="navbar-logo-icon">
           <span style={{ fontSize: '1.125rem', position: 'relative', zIndex: 1 }}>📖</span>
         </div>
@@ -94,6 +95,7 @@ export default function Navbar({ onSearch, onMenuToggle, menuOpen, searchValue }
           />
           <input
             id="navbar-search"
+            data-testid="navbar-search"
             type="search"
             value={displaySearch}
             onChange={e => {
@@ -131,19 +133,32 @@ export default function Navbar({ onSearch, onMenuToggle, menuOpen, searchValue }
         <Link
           to="/orders"
           id="nav-orders"
+          data-testid="nav-orders"
           className={`nav-icon-btn nav-orders-btn ${location.pathname === '/orders' ? 'active' : ''}`}
           aria-label="My Orders"
           title="My Orders"
-          style={{ width: 'auto', padding: '0 0.75rem', gap: '0.375rem', fontSize: '0.8125rem', fontWeight: 600 }}
+          style={{ width: 'auto', padding: '0 0.75rem', gap: '0.375rem', fontSize: '0.8125rem', fontWeight: 600, position: 'relative' }}
         >
           <FiPackage size={16} />
           <span className="nav-orders-label">Orders</span>
+          {(() => {
+            const orders = JSON.parse(localStorage.getItem('bm_orders') || '[]');
+            if (orders.length > 0) {
+              return (
+                <span className="nav-badge" style={{ top: -5, right: -5, background: 'var(--navy-600)', color: 'white' }}>
+                  {orders.length}
+                </span>
+              );
+            }
+            return null;
+          })()}
         </Link>
 
 
         <Link
           to="/wishlist"
           id="nav-wishlist"
+          data-testid="nav-wishlist"
           className={`nav-icon-btn ${location.pathname === '/wishlist' ? 'active' : ''}`}
           aria-label={`Wishlist (${wishCount} item${wishCount !== 1 ? 's' : ''})`}
           title="Wishlist"
@@ -161,6 +176,7 @@ export default function Navbar({ onSearch, onMenuToggle, menuOpen, searchValue }
         <Link
           to="/cart"
           id="nav-cart"
+          data-testid="nav-cart"
           className={`nav-icon-btn ${location.pathname === '/cart' ? 'active' : ''}`}
           aria-label={`Cart (${cartCount} item${cartCount !== 1 ? 's' : ''})`}
           title="Cart"
@@ -194,14 +210,19 @@ export default function Navbar({ onSearch, onMenuToggle, menuOpen, searchValue }
         <div style={{ position: 'relative' }} ref={profileRef}>
           <button
             id="nav-profile"
+            data-testid="nav-profile"
             className="nav-profile-btn"
             onClick={() => setProfileOpen(p => !p)}
             aria-expanded={profileOpen}
             aria-haspopup="true"
             style={{ marginLeft: '0.25rem' }}
           >
-            <div className="nav-avatar">
-              {user?.name?.[0] || 'S'}
+            <div className="nav-avatar" style={{ overflow: 'hidden' }}>
+              {user?.avatar ? (
+                <img src={user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                user?.name?.[0] || 'S'
+              )}
             </div>
             <span className="nav-avatar-name">
               {user?.name?.split(' ')[0] || 'Student'}
@@ -214,6 +235,14 @@ export default function Navbar({ onSearch, onMenuToggle, menuOpen, searchValue }
                 <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)' }}>{user?.name}</p>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</p>
               </div>
+              <Link
+                to="/profile"
+                className="profile-dropdown-item"
+                role="menuitem"
+                onClick={() => setProfileOpen(false)}
+              >
+                <FiUser size={15} /> My Profile
+              </Link>
               <Link
                 to="/orders"
                 className="profile-dropdown-item"
@@ -233,6 +262,7 @@ export default function Navbar({ onSearch, onMenuToggle, menuOpen, searchValue }
               <div style={{ height: 1, background: 'var(--border-subtle)', margin: '0.25rem 0' }} />
               <button
                 id="nav-logout"
+                data-testid="nav-logout"
                 onClick={handleLogout}
                 className="profile-dropdown-item danger"
                 role="menuitem"
