@@ -23,10 +23,15 @@ const HERO_BANNERS = {
 export default function DashboardPage() {
   const { allBooks: books, loading } = useBooks();
 
-  const [selectedBranch, setSelectedBranch] = useState(null);
+  const [selectedBranch, setSelectedBranch] = useState(() => {
+    return sessionStorage.getItem('bm_selected_branch') || null;
+  });
 
   useEffect(() => {
     document.title = selectedBranch ? `${selectedBranch} Books - Book Market` : 'Dashboard - Book Market';
+    if (selectedBranch) {
+      sessionStorage.setItem('bm_selected_branch', selectedBranch);
+    }
   }, [selectedBranch]);
   const [selectedYear, setSelectedYear]     = useState('All');
   const [searchQuery, setSearchQuery]       = useState('');

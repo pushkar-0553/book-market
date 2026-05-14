@@ -132,8 +132,8 @@ export default function BookDetailsPage() {
           style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '2.5rem' }}
         >
           {[
-            { label: 'Dashboard', action: () => navigate('/dashboard') },
-            { label: book.Branch,  action: () => navigate('/dashboard') },
+            { label: 'Dashboard', action: () => { sessionStorage.removeItem('bm_selected_branch'); navigate('/dashboard'); } },
+            { label: book.Branch,  action: () => { sessionStorage.setItem('bm_selected_branch', book.Branch); navigate('/dashboard'); } },
           ].map(({ label, action }) => (
             <span key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
               <button
@@ -420,7 +420,7 @@ export default function BookDetailsPage() {
                 Related in {book.Branch}
               </h2>
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => { sessionStorage.setItem('bm_selected_branch', book.Branch); navigate('/dashboard'); }}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.8125rem', fontWeight: 600 }}
               >
                 View all →

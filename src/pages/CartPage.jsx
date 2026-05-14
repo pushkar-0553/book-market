@@ -74,7 +74,7 @@ export default function CartPage() {
         <p className="empty-state-body">
           You haven't added any books yet. Browse your semester catalog and add the books you need!
         </p>
-        <Link to="/dashboard" className="btn btn-primary btn-lg">
+        <Link to="/dashboard" className="btn btn-primary btn-lg" onClick={() => sessionStorage.removeItem('bm_selected_branch')}>
           <FiShoppingBag size={18} /> Browse Books
         </Link>
       </div>
