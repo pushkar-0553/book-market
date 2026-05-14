@@ -71,6 +71,14 @@ export default function BookDetailsPage() {
     }
   }, [id, allBooks, loading, navigate]);
 
+  useEffect(() => {
+    if (book) {
+      document.title = `${book.SubjectName || book.FullBookName} - Book Market`;
+    } else {
+      document.title = 'Book Details - Book Market';
+    }
+  }, [book]);
+
   if (loading || !book) {
     return (
       <div className="flex-center" style={{ minHeight: 'calc(100vh - var(--navbar-h))' }}>

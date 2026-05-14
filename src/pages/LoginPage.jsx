@@ -93,7 +93,7 @@ function CreditsPanel() {
         boxShadow: '0 15px 35px rgba(0,0,0,0.4)'
       }}>
         <div style={{ width: 200, height: 200, borderRadius: 16, overflow: 'hidden', border: `2px solid ${vOrange}`, flexShrink: 0 }}>
-          <img src="/mentor-bvr.jpeg" alt="Mentor" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = 'https://ui-avatars.com/api/?name=BVR+Manohar&background=F27405&color=fff'; }} />
+          <img src="/mentor-bvr.jpeg" alt="Mentor" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => { e.target.src = 'https://ui-avatars.com/api/?name=BVR+Manohar&background=F27405&color=fff'; }} />
         </div>
         <div>
           <h3 style={{ fontSize: '1.125rem', fontWeight: 900, color: 'white', marginBottom: '0.25rem' }}>Mr. BRV Manohar Rao</h3>
@@ -218,6 +218,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(true);
+    document.title = 'Login - Book Market';
     if (isAuthenticated) navigate(from, { replace: true });
   }, [isAuthenticated]);
 
@@ -426,7 +427,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={e => { setPassword(e.target.value); if (localError) setLocalError(''); }}
                   className="input-field has-icon-left has-icon-right"
-                  placeholder="••••••••"
+                  placeholder="Password"
                   autoComplete="current-password"
                 />
                 <button
@@ -441,19 +442,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Remember me */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <input
-                id="remember-me"
-                type="checkbox"
-                checked={remember}
-                onChange={e => setRemember(e.target.checked)}
-                style={{ width: 16, height: 16, accentColor: '#0a1628', cursor: 'pointer' }}
-              />
-              <label htmlFor="remember-me" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                Keep me signed in for 30 days
-              </label>
-            </div>
+          
 
             {/* Submit */}
             <button

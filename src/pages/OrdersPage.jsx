@@ -674,6 +674,7 @@ export default function OrdersPage() {
   const wishCount = wishlist?.length || 0;
 
   useEffect(() => {
+    document.title = 'My Orders - Book Market';
     const raw = JSON.parse(localStorage.getItem('bm_orders') || '[]');
     
     // Filter to keep only last 5 days of orders

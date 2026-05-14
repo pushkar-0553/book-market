@@ -31,6 +31,10 @@ const ProfilePage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    document.title = 'Profile - Book Market';
+  }, []);
+
   // Sync formData with user context if it changes
   useEffect(() => {
     if (user) {

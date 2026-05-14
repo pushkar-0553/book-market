@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiClock, FiArrowRight, FiUser } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext';
 import { useDelivery } from '../context/DeliveryContext';
 
 const PACKING_MINS = 3;
@@ -12,6 +13,7 @@ const LiveOrderTracker = () => {
   const [now, setNow] = useState(Date.now());
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const { getAgentForOrder } = useDelivery();
 
   useEffect(() => {
@@ -48,7 +50,7 @@ const LiveOrderTracker = () => {
     return () => clearInterval(iv);
   }, [location.pathname]); // Re-check on navigation
 
-  if (!liveOrder || location.pathname === '/orders') return null;
+  if (!isAuthenticated || !liveOrder || location.pathname === '/orders') return null;
 
   const elapsedMs = now - liveOrder.orderTime;
   const elapsedMins = elapsedMs / MS_PER_MIN;

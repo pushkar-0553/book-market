@@ -1,5 +1,5 @@
 // CartPage — Deep Navy + Gold | Premium e-commerce cart
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   FiTrash2, FiMinus, FiPlus, FiShoppingBag, FiTag,
@@ -19,6 +19,10 @@ const TOAST_STYLE = {
 };
 
 export default function CartPage() {
+  useEffect(() => {
+    document.title = 'Cart - Book Market';
+  }, []);
+
   const { items, promo: savedPromo, dispatch } = useCart();
   const navigate = useNavigate();
 

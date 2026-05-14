@@ -1,5 +1,5 @@
 // DashboardPage — Deep Navy + Gold | Hero banner + Grid layout
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { FiFilter, FiGrid, FiList, FiX, FiTrendingUp, FiBookOpen, FiPackage } from 'react-icons/fi';
 import { useBooks } from '../context/BooksContext';
 import BookCard from '../components/BookCard';
@@ -24,6 +24,10 @@ export default function DashboardPage() {
   const { allBooks: books, loading } = useBooks();
 
   const [selectedBranch, setSelectedBranch] = useState(null);
+
+  useEffect(() => {
+    document.title = selectedBranch ? `${selectedBranch} Books - Book Market` : 'Dashboard - Book Market';
+  }, [selectedBranch]);
   const [selectedYear, setSelectedYear]     = useState('All');
   const [searchQuery, setSearchQuery]       = useState('');
   const [viewMode, setViewMode]             = useState('grid');

@@ -1,5 +1,5 @@
 // CheckoutPage - with promo from CartContext, step indicator, user name pre-fill
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FiCheckCircle, FiChevronLeft, FiMapPin, FiCreditCard, FiSmartphone, FiDollarSign, FiBriefcase } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
@@ -37,6 +37,10 @@ const DELIVERY_FEE = 49;
 const STEPS = ['Address', 'Payment', 'Confirm'];
 
 export default function CheckoutPage() {
+  useEffect(() => {
+    document.title = 'Checkout - Book Market';
+  }, []);
+
   const { items, promo, dispatch } = useCart();
   const { user, wallet, updateWallet } = useAuth();
   const navigate = useNavigate();

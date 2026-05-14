@@ -1,4 +1,5 @@
 // WishlistPage — consistent card design + Move All to Cart
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiHeart, FiShoppingCart, FiTrash2, FiChevronLeft, FiShoppingBag } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
@@ -8,6 +9,10 @@ const FALLBACK_IMG = 'https://images.unsplash.com/photo-1532012197267-da84d127e7
 const TOAST_STYLE = { background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: '14px' };
 
 export default function WishlistPage() {
+  useEffect(() => {
+    document.title = 'Wishlist - Book Market';
+  }, []);
+
   const { wishlist, dispatch, isInCart, addToCart: contextAddToCart } = useCart();
   const navigate = useNavigate();
 

@@ -2,6 +2,16 @@ import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { FiX, FiSmartphone, FiCreditCard, FiCheckCircle, FiLock, FiChevronLeft } from 'react-icons/fi';
 
+/** Detect card network from first few digits */
+function getCardNetwork(rawNumber) {
+  const n = rawNumber.replace(/\s/g, '');
+  if (/^4/.test(n))                          return { name: 'Visa',       color: '#1a1f71', logo: '💳 VISA' };
+  if (/^5[1-5]/.test(n) || /^2[2-7]/.test(n)) return { name: 'Mastercard', color: '#eb001b', logo: '🔴 Mastercard' };
+  if (/^6/.test(n))                          return { name: 'RuPay',      color: '#0a6e31', logo: '🟢 RuPay' };
+  if (/^3[47]/.test(n))                      return { name: 'Amex',       color: '#007bc1', logo: '🔵 Amex' };
+  return null;
+}
+
 const TopUpDialog = ({ isOpen, onClose, onTopUp }) => {
   const [step, setStep] = useState(1); // 1: Amount/Method, 2: Details
   const [amount, setAmount] = useState('');
@@ -11,6 +21,7 @@ const TopUpDialog = ({ isOpen, onClose, onTopUp }) => {
   // Payment Details
   const [cardDetails, setCardDetails] = useState({ number: '', expiry: '', cvv: '', name: '' });
   const [upiId, setUpiId] = useState('');
+  const [errors, setErrors] = useState({});
 
   if (!isOpen) return null;
 
@@ -28,17 +39,36 @@ const TopUpDialog = ({ isOpen, onClose, onTopUp }) => {
   };
 
   const handleProcess = () => {
+    const newErrors = {};
     if (method === 'card') {
-      if (!cardDetails.number || !cardDetails.expiry || !cardDetails.cvv) {
-        toast.error('Please fill all card details');
-        return;
+      const rawNum = cardDetails.number.replace(/\s/g, '');
+      if (!/^\d{16}$/.test(rawNum)) newErrors.cardNumber = 'Enter a valid 16-digit card number';
+      if (!cardDetails.name.trim()) newErrors.cardName = 'Cardholder name is required';
+      
+      // Expiry validation: MM/YY, future date
+      if (!/^\d{2}\/\d{2}$/.test(cardDetails.expiry)) {
+        newErrors.cardExpiry = 'Enter expiry as MM/YY';
+      } else {
+        const [m, y] = cardDetails.expiry.split('/').map(Number);
+        const now = new Date();
+        const currMonth = now.getMonth() + 1;
+        const currYear = Number(now.getFullYear().toString().slice(-2));
+        if (m < 1 || m > 12) {
+          newErrors.cardExpiry = 'Invalid month (01-12)';
+        } else if (y < currYear || (y === currYear && m < currMonth)) {
+          newErrors.cardExpiry = 'Card has expired';
+        }
       }
+
+      if (!/^\d{3}$/.test(cardDetails.cvv)) newErrors.cardCvv = 'Enter a valid 3-digit CVV';
     } else {
-      if (!upiId || !upiId.includes('@')) {
-        toast.error('Please enter a valid UPI ID');
-        return;
+      if (!upiId || !/\S+@\S+/.test(upiId)) {
+        newErrors.upiId = 'Enter a valid UPI ID (e.g. name@upi)';
       }
     }
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
 
     setIsProcessing(true);
     // Simulate payment processing delay (5 seconds as requested)
@@ -63,6 +93,7 @@ const TopUpDialog = ({ isOpen, onClose, onTopUp }) => {
     setAmount('');
     setCardDetails({ number: '', expiry: '', cvv: '', name: '' });
     setUpiId('');
+    setErrors({});
     onClose();
   };
 
@@ -215,51 +246,60 @@ const TopUpDialog = ({ isOpen, onClose, onTopUp }) => {
               ) : (
                 <>
                   {method === 'card' ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      <div>
-                        <label className="input-label">Card Holder Name</label>
-                        <input 
-                          type="text" className="input-field" placeholder="John Doe"
-                          value={cardDetails.name} onChange={e => setCardDetails({...cardDetails, name: e.target.value})}
-                        />
+                    <div className="animate-slide-up" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <Field id="topup-card-number" label="Card Number" error={errors.cardNumber} required>
+                        <input id="topup-card-number" type="text" maxLength={19} value={cardDetails.number} onChange={e => { const raw = e.target.value.replace(/\D/g, '').slice(0, 16); setCardDetails(c => ({ ...c, number: raw.replace(/(.{4})/g, '$1 ').trim() })); }} className={`input-field ${errors.cardNumber ? 'error' : ''}`} style={{ fontFamily: "'DM Mono', monospace", letterSpacing: '0.05em' }} placeholder="1234 5678 9012 3456" inputMode="numeric" />
+                      </Field>
+                      <Field id="topup-card-name" label="Cardholder Name" error={errors.cardName} required>
+                        <input id="topup-card-name" type="text" value={cardDetails.name} onChange={e => setCardDetails(c => ({ ...c, name: e.target.value }))} className={`input-field ${errors.cardName ? 'error' : ''}`} style={{ textTransform: 'uppercase' }} placeholder="AS ON CARD" />
+                      </Field>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                        <Field id="topup-card-expiry" label="Expiry (MM/YY)" error={errors.cardExpiry} required>
+                          <input id="topup-card-expiry" type="text" maxLength={5} value={cardDetails.expiry} onChange={e => { let v = e.target.value.replace(/\D/g, ''); if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2, 4); setCardDetails(c => ({ ...c, expiry: v })); }} className={`input-field ${errors.cardExpiry ? 'error' : ''}`} style={{ fontFamily: "'DM Mono', monospace" }} placeholder="MM/YY" inputMode="numeric" />
+                        </Field>
+                        <Field id="topup-card-cvv" label="CVV" error={errors.cardCvv} required>
+                          <input id="topup-card-cvv" type="password" maxLength={3} value={cardDetails.cvv} onChange={e => setCardDetails(c => ({ ...c, cvv: e.target.value.replace(/\D/g, '').slice(0, 3) }))} className={`input-field ${errors.cardCvv ? 'error' : ''}`} style={{ fontFamily: "'DM Mono', monospace", letterSpacing: '0.2em' }} placeholder="•••" inputMode="numeric" />
+                        </Field>
                       </div>
-                      <div>
-                        <label className="input-label">Card Number</label>
-                        <div className="input-wrap">
-                          <FiCreditCard className="input-icon input-icon-left" />
-                          <input 
-                            type="text" className="input-field has-icon-left" placeholder="0000 0000 0000 0000"
-                            value={cardDetails.number} onChange={e => setCardDetails({...cardDetails, number: e.target.value})}
-                          />
-                        </div>
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div>
-                          <label className="input-label">Expiry Date</label>
-                          <input 
-                            type="text" className="input-field" placeholder="MM/YY"
-                            value={cardDetails.expiry} onChange={e => setCardDetails({...cardDetails, expiry: e.target.value})}
-                          />
-                        </div>
-                        <div>
-                          <label className="input-label">CVV</label>
-                          <input 
-                            type="password" className="input-field" placeholder="***" maxLength="3"
-                            value={cardDetails.cvv} onChange={e => setCardDetails({...cardDetails, cvv: e.target.value})}
-                          />
-                        </div>
-                      </div>
+
+                      {/* Card network detection */}
+                      {(() => {
+                        const network = getCardNetwork(cardDetails.number);
+                        return network ? (
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: 10,
+                            padding: '10px 14px',
+                            borderRadius: 10,
+                            background: `${network.color}12`,
+                            border: `1px solid ${network.color}30`,
+                            marginTop: 4,
+                          }}>
+                            <span style={{ fontSize: '1.1rem' }}>{network.logo.split(' ')[0]}</span>
+                            <div>
+                              <p style={{ fontSize: '0.75rem', fontWeight: 700, color: network.color }}>{network.name} detected</p>
+                              <p style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', marginTop: 1 }}>Your {network.name} card is accepted and secured</p>
+                            </div>
+                            <span style={{
+                              marginLeft: 'auto', fontSize: '0.6875rem', fontWeight: 700,
+                              padding: '2px 8px', borderRadius: 99,
+                              background: network.color, color: 'white',
+                            }}>{network.name.toUpperCase()}</span>
+                          </div>
+                        ) : null;
+                      })()}
                     </div>
                   ) : (
-                    <div>
-                      <label className="input-label">UPI ID</label>
-                      <div className="input-wrap">
-                        <FiSmartphone className="input-icon input-icon-left" />
-                        <input 
-                          type="text" className="input-field has-icon-left" placeholder="username@bank"
-                          value={upiId} onChange={e => setUpiId(e.target.value)}
-                        />
-                      </div>
+                    <div className="animate-slide-up">
+                      <Field id="topup-upi-id" label="UPI ID" error={errors.upiId} required>
+                        <div className="input-wrap">
+                          <FiSmartphone className="input-icon input-icon-left" />
+                          <input 
+                            id="topup-upi-id"
+                            type="text" className={`input-field has-icon-left ${errors.upiId ? 'error' : ''}`} placeholder="username@bank"
+                            value={upiId} onChange={e => setUpiId(e.target.value)}
+                          />
+                        </div>
+                      </Field>
                       <div style={{ marginTop: '1.5rem', textAlign: 'center', padding: '1rem', background: 'var(--bg-base)', borderRadius: '12px', border: '1px dashed var(--border-default)' }}>
                         <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Scan QR code on your mobile to pay</p>
                         <div style={{ width: '120px', height: '120px', background: '#eee', margin: '1rem auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -296,5 +336,17 @@ const TopUpDialog = ({ isOpen, onClose, onTopUp }) => {
     </div>
   );
 };
+
+function Field({ id, label, error, required, children }) {
+  return (
+    <div>
+      <label htmlFor={id} className="input-label">
+        {label} {required && <span style={{ color: 'var(--error-text)' }}>*</span>}
+      </label>
+      {children}
+      {error && <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--error-text)', marginTop: '0.375rem' }} role="alert">{error}</p>}
+    </div>
+  );
+}
 
 export default TopUpDialog;

@@ -9,5 +9,7 @@ My orders down left panel is not working- My orders down left panel is not worki
 My Oders, create a link to continue shopping- 
 Color change for right panel- Color change for right panel as My orders text is not clear
 Clear Address fields for second order- Clear Address fields for second order as I could see same previous order only
-All 1 items delivered to your hostel- Want to show text as "All 1 items delivered to your location"
+All 1 items delivered to your hostel- Want to show text as "All 1 items delivered to your location"
 Selecting a year never removes books count- Selecting a year never removes books count
+Top-up Wallet Card Functionality- Upgraded the Top-up Wallet feature in the Profile section to include the comprehensive card validation, input formatting, inline error reporting, and live network detection used in the payment checkout flow.
+Page Title / Pagination Error- Implemented dynamic context-aware page title updates across every major page and route (e.g. Cart - Book Market, Profile - Book Market) to eliminate the static title testing bug.
